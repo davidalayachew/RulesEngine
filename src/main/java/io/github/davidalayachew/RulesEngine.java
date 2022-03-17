@@ -8,8 +8,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -64,6 +66,7 @@ public class RulesEngine
    
       OK,
       ALREADY_EXISTS,
+      OVERWROTE_PREVIOUS_VALUE,
       ;
    
    }
@@ -104,6 +107,13 @@ public class RulesEngine
             && regex.matcher(text).matches()
             ;
          
+      }
+      
+      public String toString()
+      {
+      
+         return this.name;
+      
       }
     
    }
@@ -157,6 +167,7 @@ public class RulesEngine
       private static final Pattern regex = Pattern.compile(                               //If pattern is surrounded by () then it's a group
                                                             "([a-zA-Z]*) "                //group 1
                                                             + Relationship.IS             //not a group because no (), so just a pattern
+                                                            + "(?: A)?"
                                                             + " " + Type.regex            //group 2
                                                             );
       
@@ -194,6 +205,14 @@ public class RulesEngine
             && regex.matcher(text).matches()
             ;
          
+      }
+      
+      @Override
+      public String toString()
+      {
+      
+      return this.name + " IS A " + this.type;
+      
       }
     
    }
@@ -252,7 +271,7 @@ public class RulesEngine
    private record Query() {}
    
    private final Collection<Type> types = new HashSet<>();
-   private final Collection<Instance> instances = new HashSet<>();
+   private final Map<String, Set<Type>> instances = new HashMap<>();
    private final Collection<Rule> rules = new HashSet<>();
    
    public RulesEngine()
@@ -307,6 +326,9 @@ public class RulesEngine
       typingArea.setText(newTypingAreaText);
       displayArea.setText(newDisplayAreaText);
       typingArea.requestFocusInWindow();
+      
+      displayArea.setCaretPosition(0);
+      //displayArea.setCaretPosition(displayArea.getDocument().getLength());
    
    }
    
@@ -315,12 +337,25 @@ public class RulesEngine
    
       Optional<? extends Request> request = convertToRequest(newDisplayAreaText);
       
-      Response response = processRequest(request.orElseThrow());
+      if (request.isPresent())
+      {
       
-      newDisplayAreaText += "\n\t" + response;
-      newDisplayAreaText += "\n" + displayArea.getText();
-      setText(typingArea, newTypingAreaText, displayArea, newDisplayAreaText);
+         Response response = processRequest(request.orElseThrow());
+         
+         newDisplayAreaText += "\n\t" + response;
+      
+      }
    
+      else
+      {
+      
+         newDisplayAreaText += "\n\tINVALID FORMAT";
+      
+      }
+   
+         newDisplayAreaText += "\n" + displayArea.getText();
+         setText(typingArea, newTypingAreaText, displayArea, newDisplayAreaText);
+         
    }
    
    private Optional<? extends Request> convertToRequest(final String input)
@@ -365,38 +400,15 @@ public class RulesEngine
    private Response processRequest(Request request)
    {
    
-      Response response;
-      
-      if (request instanceof Rule r)
-      {
-      
-         response = processRule(r);
-      
-      }
-      
-      else if (request instanceof Instance i)
-      {
-      
-         response = processInstance(i);
-      
-      }
-      
-      else if (request instanceof Type t)
-      {
-      
-         response = processType(t);
-      
-      }
-      
-      else
-      {
-      
-         throw new IllegalStateException();
-      
-      }
-   
-      return response;
-   
+      return switch(request)
+         {
+         
+            case Rule r -> processRule(r);
+            case Instance i -> processInstance(i);
+            case Type t -> processType(t);
+         
+         };
+
    }
    
    private Response processRule(Rule rule)
@@ -409,7 +421,17 @@ public class RulesEngine
    private Response processInstance(Instance instance)
    {
    
-      return null;
+   System.out.println(instance);
+   
+   processType(instance.type());
+   
+   this.instances.merge(
+   instance.name(),
+   new HashSet<>(Arrays.asList(instance.type())),
+   (oldSet, newSet) -> {oldSet.addAll(newSet);return oldSet;}
+   );
+   
+   return Response.OK;
    
    }
 

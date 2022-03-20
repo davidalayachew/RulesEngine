@@ -4,6 +4,7 @@ import javax.swing.JFrame;
 import javax.swing.*;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
@@ -22,42 +24,42 @@ import java.util.stream.IntStream;
 public class RulesEngine
 {
 
-   private sealed interface Request permits Type, Instance, Rule {}
+   private sealed interface Parseable permits Type, Quantity, QuantityType, Instance, FrequencyType, Rule {}
+   
+   private interface Regex {}
    
    private enum Frequency
    {
    
       EVERY,
-      SOME,
+      NOT_EVERY,
       NONE,
       ;
    
       //turns [A, B, C] into (A|B|C)
       //useful in Java's Pattern class, when you want a pattern capturing group for an enum
       
-      public static final String regex = Arrays.toString(values())
-                  .replace('[', '(')
-                  .replace(']', ')')
-                  .replaceAll(", ", "|")
-                  ;
-      
+      public static final String regex = convertToPatternGroup(values());
    }
 
    private enum Relationship
    {
    
       HAS,  //Frequency Type has Quantity Type
-      IS,   //Instance is Type
+      IS_A,   //Instance is Type
       ;
    
       //turns [A, B, C] into (A|B|C)
       //useful in Java's Pattern class, when you want a pattern capturing group for an enum
       
-      public static final String regex = Arrays.toString(values())
-                  .replace('[', '(')
-                  .replace(']', ')')
-                  .replaceAll(", ", "|")
-                  ;
+      public static final String regex = convertToPatternGroup(values());
+      
+      public String pattern()
+      {
+      
+         return this.name().replace('_', ' ');
+      
+      }
       
    }
 
@@ -71,207 +73,212 @@ public class RulesEngine
    
    }
 
-   private record Type(String name) implements Request
+   private final class ClassParser
+   {
+   
+      private ClassParser() {throw new UnsupportedOperationException();}
+   
+      private static final Map<Pattern, Function<List<String>, Parseable>> map = createMap();
+   
+      private static Map<Pattern, Function<List<String>, Parseable>> createMap()
+      {
+      
+         Map<Pattern, Function<List<String>, Parseable>> map = new HashMap<>();
+      
+         for (Class<?> each : Parseable.class.getPermittedSubclasses())
+         {
+         
+            @SuppressWarnings("unchecked")
+               Class<? extends Parseable> temp = (Class<Parseable>)each;
+         
+            try
+            {
+            
+               Constructor<? extends Parseable> constructor = temp.getConstructor(List.class);
+               Parseable godForgiveMe = constructor.newInstance(
+                     each.getCanonicalName().contains("Quantity")
+                     ? List.of("1", "1")
+                     : List.of("EVERY", "1", "1", "1")
+                  );
+               
+               
+               switch (godForgiveMe)
+               {
+               
+                  case Type t             -> map.put(Type.regex, Type::new);
+                  case Quantity q         -> map.put(Quantity.regex, Quantity::new);
+                  case QuantityType qt    -> map.put(QuantityType.regex, QuantityType::new);
+                  case Instance i         -> map.put(Instance.regex, Instance::new);
+                  case FrequencyType ft   -> map.put(FrequencyType.regex, FrequencyType::new);
+                  case Rule r             -> map.put(Rule.regex, Rule::new);
+               
+               }
+            
+            
+            }
+            
+            catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException exception)
+            {
+            
+               throw new IllegalStateException(exception);
+            
+            }
+         
+         }
+      
+         return Collections.unmodifiableMap(map);
+      
+      }
+   
+      private static final Optional<? extends Parseable> parse(String text)
+      {
+      
+         for (Map.Entry<Pattern, Function<List<String>, Parseable>> each : map.entrySet())
+         {
+         
+            Pattern regex = each.getKey();
+         
+            Matcher match = regex.matcher(text);
+         
+            if (match.matches())
+            {
+            
+               return Optional.of(each.getValue().apply(fetchGroups(match)));
+            
+            }
+         
+         }
+      
+         return Optional.empty();
+      
+      }
+      
+      private static final List<String> fetchGroups(Matcher match)
+      {
+      
+         List<String> groups = new ArrayList<>();
+      
+         for (int i = 1; i <= match.groupCount(); i++)
+         {
+         
+            groups.add(match.group(i));
+         
+         }
+         
+         return groups;
+      
+      }
+   
+   }
+
+   private record Type(String name) implements Parseable
    {
    
       public static final Pattern regex = Pattern.compile("([a-zA-Z]*)");
-      
-      public static Optional<Type> of(String text)
-      {
-      
-         if (isParseable(text))
-         {
-         
-            Matcher match = regex.matcher(text);
-            match.matches();
-         
-            return Optional.of(new Type(match.group(1)));
-         
-         }
-         
-         else
-         {
-         
-            return Optional.empty();
-         
-         }
-         
-      }
    
-      public static boolean isParseable(String text)
+      public Type(List<String> string)
       {
       
-         return 
-            text != null
-            && !text.isBlank()
-            && regex.matcher(text).matches()
-            ;
-         
-      }
-      
-      public String toString()
-      {
-      
-         return this.name;
+         this(string.get(0));
       
       }
-    
+      
+      
+   
    }
 
-   private record Quantity(long count, Type type)
+   private record Quantity(long count) implements Parseable
    {
    
-      public static final Pattern regex = Pattern.compile("(\\d{1,7}) ([a-zA-Z]*)");
+      public static final Pattern regex = Pattern.compile("(\\d{1,7})");
       
-      public static Optional<Quantity> of(String text)
+      public Quantity(List<String> strings)
       {
       
-         if (isParseable(text))
-         {
-         
-            Matcher match = regex.matcher(text);
-            match.matches();
-         
-            long count = Long.parseLong(match.group(1));
-            Type type = Type.of(match.group(2)).orElseThrow();
-            
-            return Optional.of(new Quantity(count, type));
-         
-         }
-         
-         else
-         {
-         
-            return Optional.empty();
-         
-         }
-         
+         this(Long.parseLong(strings.get(0)));
+      
       }
    
-      public static boolean isParseable(String text)
-      {
-      
-         return 
-            text != null
-            && !text.isBlank()
-            && regex.matcher(text).matches()
-            ;
-         
-      }
-    
    }
 
-   private record Instance(String name, Type type) implements Request
+   private record QuantityType(Quantity quantity, Type type) implements Parseable
+   {
+   
+      public static final Pattern regex = Pattern.compile(                          //If pattern is surrounded by () then it's a group
+                                                               Quantity.regex       //group 1
+                                                               + " " + Type.regex   //group 2
+                                                               );
+   
+      public QuantityType(List<String> groups)
+      {
+      
+         this(
+               new Quantity(groups.subList(0, 1)),
+               new Type(groups.subList(1, 2))
+            );
+      
+      }
+   
+   }
+
+   private record Instance(String name, Type type) implements Parseable
    {
    
       private static final Pattern regex = Pattern.compile(                               //If pattern is surrounded by () then it's a group
                                                             "([a-zA-Z]*) "                //group 1
-                                                            + Relationship.IS             //not a group because no (), so just a pattern
-                                                            + "(?: A)?"
+                                                            + Relationship.IS_A.pattern() //not a group because no (), so just a pattern
                                                             + " " + Type.regex            //group 2
                                                             );
       
-      static final Optional<Instance> of(String text)
+      public Instance(List<String> strings)
       {
       
-         Matcher match = regex.matcher(text);
-         match.matches();
-      
-         if (match.matches())
-         {
-         
-            String name = match.group(1);
-            Type type = new Type(match.group(2));
-            
-            return Optional.of(new Instance(name, type));
-         
-         }
-         
-         else
-         {
-         
-            return Optional.empty();
-         
-         }
+         this(strings.get(0), new Type(strings.subList(1, 2)));
       
       }
       
-      public static boolean isParseable(String text)
+   }
+
+   private record Rule(FrequencyType frequencyType, QuantityType quantityType) implements Parseable
+   {
+   
+      private static final Pattern regex = Pattern.compile(                               //If pattern is surrounded by () then it's a group
+                                                            FrequencyType.regex           //group 1 and 2
+                                                            + " " + Relationship.HAS      //not a group because no (), so just a pattern
+                                                            + " " + QuantityType.regex    //group 3 and 4
+                                                            );
+      
+      public Rule(List<String> strings)
       {
       
-         return 
-            text != null
-            && !text.isBlank()
-            && regex.matcher(text).matches()
-            ;
-         
-      }
-      
-      @Override
-      public String toString()
-      {
-      
-      return this.name + " IS A " + this.type;
+         this(new FrequencyType(strings.subList(0, 2)), new QuantityType(strings.subList(2, 4)));
       
       }
     
    }
 
-   private record Rule(Frequency frequency, Type type, Quantity quantity) implements Request
+   private record FrequencyType(Frequency frequency, Type type) implements Parseable
    {
    
       private static final Pattern regex = Pattern.compile(                               //If pattern is surrounded by () then it's a group
                                                             Frequency.regex               //group 1
                                                             + " " + Type.regex            //group 2
-                                                            + " " + Relationship.HAS      //not a group because no (), so just a pattern
-                                                            + " " + Quantity.regex        //group 3 and 4
                                                             );
       
-      public static Optional<Rule> of(String text)
+      public FrequencyType(List<String> strings)
       {
       
-         if (isParseable(text))
-         {
-         
-            Matcher match = regex.matcher(text);
-            match.matches();
-         
-            List<String> values = List.of(match.group(1), match.group(2), match.group(3), match.group(4));
-         
-            Frequency frequency = Frequency.valueOf(match.group(1));
-            Type type = Type.of(match.group(2)).orElseThrow();
-            Quantity quantity = Quantity.of(match.group(3) + " " + match.group(4)).orElseThrow();
-            
-            return Optional.of(new Rule(frequency, type, quantity));
-         
-         }
-         
-         else
-         {
-         
-            return Optional.empty();
-         
-         }
-         
+         this(Frequency.valueOf(strings.get(0)), new Type(strings.subList(1, 2)));
+      
       }
       
-      public static boolean isParseable(String text)
-      {
-      
-         return 
-            text != null
-            && !text.isBlank()
-            && regex.matcher(text).matches()
-            ;
-         
-      }
-    
    }
 
    private record Query() {}
    
    private final Collection<Type> types = new HashSet<>();
    private final Map<String, Set<Type>> instances = new HashMap<>();
+//    private final Map<FrequencyType, Boolean>
    private final Collection<Rule> rules = new HashSet<>();
    
    public RulesEngine()
@@ -335,17 +342,17 @@ public class RulesEngine
    private void processText(JTextField typingArea, String newTypingAreaText, JTextArea displayArea, String newDisplayAreaText)
    {
    
-      Optional<? extends Request> request = convertToRequest(newDisplayAreaText);
+      Optional<? extends Parseable> parseable = convertToParseable(newDisplayAreaText);
       
-      if (request.isPresent())
+      if (parseable.isPresent())
       {
       
-         Response response = processRequest(request.orElseThrow());
+         Response response = processParseable(parseable.orElseThrow());
          
          newDisplayAreaText += "\n\t" + response;
       
       }
-   
+      
       else
       {
       
@@ -353,85 +360,85 @@ public class RulesEngine
       
       }
    
-         newDisplayAreaText += "\n" + displayArea.getText();
-         setText(typingArea, newTypingAreaText, displayArea, newDisplayAreaText);
+      newDisplayAreaText += "\n" + displayArea.getText();
+      setText(typingArea, newTypingAreaText, displayArea, newDisplayAreaText);
          
    }
    
-   private Optional<? extends Request> convertToRequest(final String input)
+   private Optional<? extends Parseable> convertToParseable(final String input)
    {
    
       final String text = input.trim().toUpperCase().replaceAll("\s+", " ");
       
-      Optional<Rule> rule = Rule.of(text);
-      Optional<Instance> instance = Instance.of(text);
-      Optional<Type> type = Type.of(text);
+      return ClassParser.parse(text);
       
-      if (rule.isPresent())
-      {
-      
-         return rule;
-      
-      }
-      
-      else if (instance.isPresent())
-      {
-      
-         return instance;
+   }
+
+   private Response processParseable(Parseable parseable)
+   {
+   
+      if (parseable instanceof Rule r)
+      { 
+         
+         return processRule(r);
       
       }
       
-      else if (type.isPresent())
+      else if (parseable instanceof Instance i)
       {
       
-         return type;
+         return processInstance(i);
       
+      }
+      
+      else if (parseable instanceof Type t)
+      {
+         
+         return processType(t);
+         
       }
       
       else
       {
       
-         return Optional.empty();
+         throw new IllegalArgumentException("Invalid type");
       
       }
-      
-   }
-
-   private Response processRequest(Request request)
-   {
    
-      return switch(request)
-         {
-         
-            case Rule r -> processRule(r);
-            case Instance i -> processInstance(i);
-            case Type t -> processType(t);
-         
-         };
-
    }
    
    private Response processRule(Rule rule)
    {
    
-      return null;
+      boolean valid = switch (rule.frequencyType().frequency())
+         {
+         
+            case EVERY -> true;
+            case NOT_EVERY -> true;
+            case NONE -> true;
+         
+         };
+   
+      this.rules.add(rule);
+   
+      return Response.OK;
    
    }
 
    private Response processInstance(Instance instance)
    {
    
-   System.out.println(instance);
+      System.out.println(instance);
    
-   processType(instance.type());
+      processType(instance.type());
    
-   this.instances.merge(
-   instance.name(),
-   new HashSet<>(Arrays.asList(instance.type())),
-   (oldSet, newSet) -> {oldSet.addAll(newSet);return oldSet;}
-   );
+      this.instances.merge(
+         instance.name(),
+         new HashSet<>(Arrays.asList(instance.type())),
+         (oldSet, newSet) -> {oldSet.addAll(newSet);return oldSet;}
+         );
    
-   return Response.OK;
+      return Response.OK;
    
    }
 
@@ -456,6 +463,53 @@ public class RulesEngine
    
    }
 
+   private static <E> String convertToPatternGroup(E[] values)
+   {
+      
+      return Arrays.toString(values)
+                  .replace('[', '(')
+                  .replace(']', ')')
+                  .replace('_', ' ')
+                  .replaceAll(", ", "|")
+                  ;
+      
+   }
+
+   private static <T extends Parseable> Optional<T> parse(Matcher matcher, Class<T> clazz)
+   {
+   
+      if (matcher.matches())
+      {
+      
+         List<String> matches = new ArrayList<>();
+      
+         for (int i = 1; i < matcher.groupCount(); i++)
+         {
+         
+            matches.add(matcher.group(i));
+         
+         }
+      
+         try
+         {
+         
+            return Optional.of(clazz.getConstructor(matches.getClass()).newInstance(matches));
+         
+         }
+         
+         catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException exception)
+         {
+         
+            throw new IllegalStateException(exception);
+         
+         }
+      
+      }
+      
+      throw new IllegalStateException();
+   
+   }
+   
    public static void main(String[] args)
    {
    

@@ -24,7 +24,8 @@ import java.util.stream.IntStream;
 public class RulesEngine
 {
 
-   private sealed interface Parseable permits Type, Quantity, QuantityType, Instance, FrequencyType, Rule {}
+   private sealed interface Parseable
+   permits Type, Identifier, IdentifierIsType, IdentifierHasQuantityType, Quantity, QuantityType, FrequencyType, FrequencyTypeHasQuantityType, FrequencyTypeIsType, FrequencyTypeRelationship {}
    
    private interface Regex {}
    
@@ -46,7 +47,7 @@ public class RulesEngine
    {
    
       HAS,  //Frequency Type has Quantity Type
-      IS_A,   //Instance is Type
+      IS,   //Instance is Type
       ;
    
       //turns [A, B, C] into (A|B|C)
@@ -57,7 +58,13 @@ public class RulesEngine
       public String pattern()
       {
       
-         return this.name().replace('_', ' ');
+         return switch (this)
+            {
+            
+               case HAS    -> this.name();
+               case IS     -> "(?:" + this.name() + "|" + this.name() + " A)";
+            
+            };
       
       }
       
@@ -69,6 +76,7 @@ public class RulesEngine
       OK,
       ALREADY_EXISTS,
       OVERWROTE_PREVIOUS_VALUE,
+      NOT_YET_IMPLEMENTED,
       ;
    
    }
@@ -94,23 +102,40 @@ public class RulesEngine
             try
             {
             
+               List<String> strings =
+                  switch (each.getSimpleName())
+                  {
+                  
+                     case "Type"                         -> List.of("A");
+                     case "Quantity", "QuantityType"     -> List.of("1", "A");
+                     case "Identifier"                   -> List.of("A");
+                     case "IdentifierHasQuantityType"    -> List.of("A", "1", "A");
+                     case "IdentifierIsType"             -> List.of("A", "A");
+                     case "FrequencyType"                -> List.of("EVERY", "A", "A");
+                     case "FrequencyTypeRelationship"    -> List.of("EVERY", "A", "IS");
+                     case "FrequencyTypeHasQuantityType" -> List.of("EVERY", "A", "1", "A");
+                     case "FrequencyTypeIsType"          -> List.of("EVERY", "A", "A");
+                     default                             -> Collections.emptyList();
+                  
+                  };
+            
                Constructor<? extends Parseable> constructor = temp.getConstructor(List.class);
-               Parseable godForgiveMe = constructor.newInstance(
-                     each.getCanonicalName().contains("Quantity")
-                     ? List.of("1", "1")
-                     : List.of("EVERY", "1", "1", "1")
-                  );
+               Parseable godForgiveMe = constructor.newInstance(strings);
                
                
                switch (godForgiveMe)
                {
                
-                  case Type t             -> map.put(Type.regex, Type::new);
-                  case Quantity q         -> map.put(Quantity.regex, Quantity::new);
-                  case QuantityType qt    -> map.put(QuantityType.regex, QuantityType::new);
-                  case Instance i         -> map.put(Instance.regex, Instance::new);
-                  case FrequencyType ft   -> map.put(FrequencyType.regex, FrequencyType::new);
-                  case Rule r             -> map.put(Rule.regex, Rule::new);
+                  case Type t                               -> map.put(Type.regex, Type::new);
+                  case Quantity q                           -> map.put(Quantity.regex, Quantity::new);
+                  case QuantityType qt                      -> map.put(QuantityType.regex, QuantityType::new);
+                  case Identifier i                         -> map.put(Identifier.regex, Identifier::new);
+                  case IdentifierHasQuantityType ihqt       -> map.put(IdentifierHasQuantityType.regex, IdentifierHasQuantityType::new);
+                  case IdentifierIsType iit                 -> map.put(IdentifierIsType.regex, IdentifierIsType::new);
+                  case FrequencyType ft                     -> map.put(FrequencyType.regex, FrequencyType::new);
+                  case FrequencyTypeRelationship ftr        -> map.put(FrequencyTypeRelationship.regex, FrequencyTypeRelationship::new);
+                  case FrequencyTypeHasQuantityType fthqt   -> map.put(FrequencyTypeHasQuantityType.regex, FrequencyTypeHasQuantityType::new);
+                  case FrequencyTypeIsType ftit             -> map.put(FrequencyTypeIsType.regex, FrequencyTypeIsType::new);
                
                }
             
@@ -174,7 +199,7 @@ public class RulesEngine
    private record Type(String name) implements Parseable
    {
    
-      public static final Pattern regex = Pattern.compile("([a-zA-Z]*)");
+      public static final Pattern regex = Pattern.compile("([a-zA-Z]+[a-zA-Z0-9]*)");
    
       public Type(List<String> string)
       {
@@ -183,7 +208,19 @@ public class RulesEngine
       
       }
       
+   }
+
+   private record Identifier(String name) implements Parseable
+   {
+   
+      private static final Pattern regex = Pattern.compile("([a-zA-Z]+[a-zA-Z0-9]*)");
+   
+      public Identifier(List<String> strings)
+      {
       
+         this(strings.get(0));
+      
+      }
    
    }
 
@@ -221,40 +258,40 @@ public class RulesEngine
    
    }
 
-   private record Instance(String name, Type type) implements Parseable
+   private record IdentifierHasQuantityType(Identifier identifier, QuantityType quantityType) implements Parseable
    {
    
-      private static final Pattern regex = Pattern.compile(                               //If pattern is surrounded by () then it's a group
-                                                            "([a-zA-Z]*) "                //group 1
-                                                            + Relationship.IS_A.pattern() //not a group because no (), so just a pattern
-                                                            + " " + Type.regex            //group 2
+      private static final Pattern regex = Pattern.compile(                                     //If pattern is surrounded by () then it's a group
+                                                            Identifier.regex                    //group 1
+                                                            + " " + Relationship.HAS.pattern()  //not a group because no (), so just a pattern
+                                                            + " " + QuantityType.regex          //group 2 and 3
                                                             );
       
-      public Instance(List<String> strings)
+      public IdentifierHasQuantityType(List<String> strings)
       {
       
-         this(strings.get(0), new Type(strings.subList(1, 2)));
+         this(new Identifier(strings.subList(0, 1)), new QuantityType(strings.subList(1, 3)));
       
       }
       
    }
 
-   private record Rule(FrequencyType frequencyType, QuantityType quantityType) implements Parseable
+   private record IdentifierIsType(Identifier identifier, Type type) implements Parseable
    {
    
-      private static final Pattern regex = Pattern.compile(                               //If pattern is surrounded by () then it's a group
-                                                            FrequencyType.regex           //group 1 and 2
-                                                            + " " + Relationship.HAS      //not a group because no (), so just a pattern
-                                                            + " " + QuantityType.regex    //group 3 and 4
+      private static final Pattern regex = Pattern.compile(                                     //If pattern is surrounded by () then it's a group
+                                                            Identifier.regex                    //group 1
+                                                            + " " + Relationship.IS.pattern()   //not a group because no (), so just a pattern
+                                                            + " " + Type.regex                  //group 2
                                                             );
       
-      public Rule(List<String> strings)
+      public IdentifierIsType(List<String> strings)
       {
       
-         this(new FrequencyType(strings.subList(0, 2)), new QuantityType(strings.subList(2, 4)));
+         this(new Identifier(strings.subList(0, 1)), new Type(strings.subList(1, 2)));
       
       }
-    
+      
    }
 
    private record FrequencyType(Frequency frequency, Type type) implements Parseable
@@ -274,12 +311,66 @@ public class RulesEngine
       
    }
 
+   private record FrequencyTypeRelationship(FrequencyType frequencyType, Relationship relationship) implements Parseable
+   {
+   
+      private static final Pattern regex = Pattern.compile(                               //If pattern is surrounded by () then it's a group
+                                                            FrequencyType.regex           //group 1 and 2
+                                                            + " " + Relationship.regex    //group 3
+                                                            );
+      
+      public FrequencyTypeRelationship(List<String> strings)
+      {
+      
+         this(new FrequencyType(strings.subList(0, 2)), Relationship.valueOf(strings.get(2)));
+      
+      }
+      
+   }
+
+   private record FrequencyTypeHasQuantityType(FrequencyType frequencyType, QuantityType quantityType) implements Parseable
+   {
+   
+      private static final Pattern regex = Pattern.compile(                                     //If pattern is surrounded by () then it's a group
+                                                            FrequencyType.regex                 //group 1 and 2
+                                                            + " " + Relationship.HAS.pattern()  //not a group because no (), so just a pattern
+                                                            + " " + QuantityType.regex          //group 3 and 4
+                                                            );
+      
+      public FrequencyTypeHasQuantityType(List<String> strings)
+      {
+      
+         this(new FrequencyType(strings.subList(0, 2)), new QuantityType(strings.subList(2, 4)));
+      
+      }
+    
+   }
+
+   private record FrequencyTypeIsType(FrequencyType frequencyType, Type type) implements Parseable
+   {
+   
+      private static final Pattern regex = Pattern.compile(                                     //If pattern is surrounded by () then it's a group
+                                                            FrequencyType.regex                 //group 1 and 2
+                                                            + " " + Relationship.IS.pattern()   //not a group because no (), so just a pattern
+                                                            + " " + Type.regex                  //group 3
+                                                            );
+      
+      public FrequencyTypeIsType(List<String> strings)
+      {
+      
+         this(new FrequencyType(strings.subList(0, 2)), new Type(strings.subList(2, 3)));
+      
+      }
+    
+   }
+
    private record Query() {}
    
    private final Collection<Type> types = new HashSet<>();
-   private final Map<String, Set<Type>> instances = new HashMap<>();
-//    private final Map<FrequencyType, Boolean>
-   private final Collection<Rule> rules = new HashSet<>();
+   private final Map<Identifier, Set<QuantityType>> hasInstances = new HashMap<>();
+   private final Map<Identifier, Set<Type>> isInstances = new HashMap<>();
+   private final Map<FrequencyType, Set<QuantityType>> hasRules = new HashMap<>();
+   private final Map<FrequencyType, Set<Type>> isRules = new HashMap<>();
    
    public RulesEngine()
    {
@@ -377,17 +468,47 @@ public class RulesEngine
    private Response processParseable(Parseable parseable)
    {
    
-      if (parseable instanceof Rule r)
-      { 
-         
-         return processRule(r);
+      System.out.println(parseable);
+   
+      if (parseable instanceof Type t)
+      {
+      
+      return Response.NOT_YET_IMPLEMENTED;
       
       }
       
-      else if (parseable instanceof Instance i)
+      else if (parseable instanceof Identifier i)
       {
       
-         return processInstance(i);
+      return Response.NOT_YET_IMPLEMENTED;
+      
+      }
+      
+      else if (parseable instanceof FrequencyTypeHasQuantityType hr)
+      { 
+         
+         return processFrequencyTypeHasQuantityType(hr);
+      
+      }
+      
+      else if (parseable instanceof FrequencyTypeIsType hr)
+      { 
+         
+         return processFrequencyTypeIsType(hr);
+      
+      }
+      
+      else if (parseable instanceof IdentifierHasQuantityType hi)
+      {
+      
+         return processIdentifierHasQuantityType(hi);
+      
+      }
+      
+      else if (parseable instanceof IdentifierIsType ii)
+      {
+      
+         return processIdentifierIsType(ii);
       
       }
       
@@ -407,34 +528,77 @@ public class RulesEngine
    
    }
    
-   private Response processRule(Rule rule)
+   private Response processFrequencyTypeHasQuantityType(FrequencyTypeHasQuantityType hasRule)
    {
    
-      boolean valid = switch (rule.frequencyType().frequency())
-         {
+      this.hasRules.merge(
+         hasRule.frequencyType(),
+         new HashSet<>(Arrays.asList(hasRule.quantityType())),
+         (oldSet, newSet) -> {oldSet.addAll(newSet);return oldSet;}
+         );
          
-            case EVERY -> true;
-            case NOT_EVERY -> true;
-            case NONE -> true;
-         
-         };
+      return Response.OK;
    
-      this.rules.add(rule);
+   }
+
+   private Response processFrequencyTypeIsType(FrequencyTypeIsType isRule)
+   {
+   
+      this.isRules.merge(
+         isRule.frequencyType(),
+         new HashSet<>(Arrays.asList(isRule.type())),
+         (oldSet, newSet) -> {oldSet.addAll(newSet);return oldSet;}
+         );
    
       return Response.OK;
    
    }
 
-   private Response processInstance(Instance instance)
+   private Response processIdentifierHasQuantityType(IdentifierHasQuantityType hasInstance)
    {
    
-      System.out.println(instance);
+      processType(hasInstance.quantityType().type());
+      
+      Set<QuantityType> quantityTypes = new HashSet<>(Arrays.asList(hasInstance.quantityType()));
+      
+      FrequencyType everyX = new FrequencyType(Frequency.EVERY, hasInstance.quantityType().type());
+      
+      if (this.hasRules.containsKey(everyX))
+      {
+      
+         quantityTypes.addAll(this.hasRules.get(everyX));
+      
+      }
    
-      processType(instance.type());
+      this.hasInstances.merge(
+         hasInstance.identifier(),
+         quantityTypes,
+         (oldSet, newSet) -> {oldSet.addAll(newSet);return oldSet;}
+         );
    
-      this.instances.merge(
-         instance.name(),
-         new HashSet<>(Arrays.asList(instance.type())),
+      return Response.OK;
+   
+   }
+
+   private Response processIdentifierIsType(IdentifierIsType isInstance)
+   {
+   
+      processType(isInstance.type());
+      
+      Set<Type> types = new HashSet<>(Arrays.asList(isInstance.type()));
+      
+      FrequencyType everyX = new FrequencyType(Frequency.EVERY, isInstance.type());
+      
+      if (this.isRules.containsKey(everyX))
+      {
+      
+         types.addAll(this.isRules.get(everyX));
+      
+      }
+   
+      this.isInstances.merge(
+         isInstance.identifier(),
+         types,
          (oldSet, newSet) -> {oldSet.addAll(newSet);return oldSet;}
          );
    

@@ -25,7 +25,18 @@ public class RulesEngine
 {
 
    private sealed interface Parseable
-   permits Type, Identifier, IdentifierIsType, IdentifierHasQuantityType, Quantity, QuantityType, FrequencyType, FrequencyTypeHasQuantityType, FrequencyTypeIsType, FrequencyTypeRelationship {}
+         permits
+            Type, 
+            Identifier, 
+            IdentifierIsType, 
+            IdentifierHasQuantityType, 
+            Quantity, 
+            QuantityType, 
+            FrequencyType, 
+            FrequencyTypeHasQuantityType, 
+            FrequencyTypeIsType, 
+            FrequencyTypeRelationship
+   {}
    
    private interface Regex {}
    
@@ -47,7 +58,7 @@ public class RulesEngine
    {
    
       HAS,  //Frequency Type has Quantity Type
-      IS,   //Instance is Type
+      IS_A, //Instance is Type
       ;
    
       //turns [A, B, C] into (A|B|C)
@@ -62,7 +73,7 @@ public class RulesEngine
             {
             
                case HAS    -> this.name();
-               case IS     -> "(?:" + this.name() + "|" + this.name() + " A)";
+               case IS_A   -> this.name().replace("_", " ");
             
             };
       
@@ -74,8 +85,7 @@ public class RulesEngine
    {
    
       OK,
-      ALREADY_EXISTS,
-      OVERWROTE_PREVIOUS_VALUE,
+      ALREADY_EXISTS_SO_NO_ACTION,
       NOT_YET_IMPLEMENTED,
       ;
    
@@ -112,7 +122,7 @@ public class RulesEngine
                      case "IdentifierHasQuantityType"    -> List.of("A", "1", "A");
                      case "IdentifierIsType"             -> List.of("A", "A");
                      case "FrequencyType"                -> List.of("EVERY", "A", "A");
-                     case "FrequencyTypeRelationship"    -> List.of("EVERY", "A", "IS");
+                     case "FrequencyTypeRelationship"    -> List.of("EVERY", "A", "IS A");
                      case "FrequencyTypeHasQuantityType" -> List.of("EVERY", "A", "1", "A");
                      case "FrequencyTypeIsType"          -> List.of("EVERY", "A", "A");
                      default                             -> Collections.emptyList();
@@ -210,7 +220,7 @@ public class RulesEngine
       
    }
 
-   private record Identifier(String name) implements Parseable
+   private record Identifier(String name)  implements Parseable
    {
    
       private static final Pattern regex = Pattern.compile("([a-zA-Z]+[a-zA-Z0-9]*)");
@@ -227,12 +237,12 @@ public class RulesEngine
    private record Quantity(long count) implements Parseable
    {
    
-      public static final Pattern regex = Pattern.compile("(\\d{1,7})");
+      public static final Pattern regex = Pattern.compile("(A|\\d{1,7})");
       
       public Quantity(List<String> strings)
       {
       
-         this(Long.parseLong(strings.get(0)));
+         this(Long.parseLong(strings.get(0).replace("A", "1")));
       
       }
    
@@ -281,7 +291,7 @@ public class RulesEngine
    
       private static final Pattern regex = Pattern.compile(                                     //If pattern is surrounded by () then it's a group
                                                             Identifier.regex                    //group 1
-                                                            + " " + Relationship.IS.pattern()   //not a group because no (), so just a pattern
+                                                            + " " + Relationship.IS_A.pattern() //not a group because no (), so just a pattern
                                                             + " " + Type.regex                  //group 2
                                                             );
       
@@ -322,7 +332,7 @@ public class RulesEngine
       public FrequencyTypeRelationship(List<String> strings)
       {
       
-         this(new FrequencyType(strings.subList(0, 2)), Relationship.valueOf(strings.get(2)));
+         this(new FrequencyType(strings.subList(0, 2)), Relationship.valueOf(strings.get(2).replace(" ", "_")));
       
       }
       
@@ -351,7 +361,7 @@ public class RulesEngine
    
       private static final Pattern regex = Pattern.compile(                                     //If pattern is surrounded by () then it's a group
                                                             FrequencyType.regex                 //group 1 and 2
-                                                            + " " + Relationship.IS.pattern()   //not a group because no (), so just a pattern
+                                                            + " " + Relationship.IS_A.pattern() //not a group because no (), so just a pattern
                                                             + " " + Type.regex                  //group 3
                                                             );
       
@@ -470,62 +480,23 @@ public class RulesEngine
    
       System.out.println(parseable);
    
-      if (parseable instanceof Type t)
-      {
+      return switch (parseable)
+               {
+               
+                  case Type t                               -> Response.NOT_YET_IMPLEMENTED;//processType(t);
+                  case Quantity q                           -> Response.NOT_YET_IMPLEMENTED;
+                  case QuantityType qt                      -> Response.NOT_YET_IMPLEMENTED;
+                  case Identifier i                         -> Response.NOT_YET_IMPLEMENTED;
+                  case IdentifierHasQuantityType ihqt       -> processIdentifierHasQuantityType(ihqt);
+                  case IdentifierIsType iit                 -> processIdentifierIsType(iit);
+                  case FrequencyType ft                     -> Response.NOT_YET_IMPLEMENTED;
+                  case FrequencyTypeRelationship ftr        -> Response.NOT_YET_IMPLEMENTED;
+                  case FrequencyTypeHasQuantityType fthqt   -> processFrequencyTypeHasQuantityType(fthqt);
+                  case FrequencyTypeIsType ftit             -> processFrequencyTypeIsType(ftit);
+               
+               };
+               
       
-      return Response.NOT_YET_IMPLEMENTED;
-      
-      }
-      
-      else if (parseable instanceof Identifier i)
-      {
-      
-      return Response.NOT_YET_IMPLEMENTED;
-      
-      }
-      
-      else if (parseable instanceof FrequencyTypeHasQuantityType hr)
-      { 
-         
-         return processFrequencyTypeHasQuantityType(hr);
-      
-      }
-      
-      else if (parseable instanceof FrequencyTypeIsType hr)
-      { 
-         
-         return processFrequencyTypeIsType(hr);
-      
-      }
-      
-      else if (parseable instanceof IdentifierHasQuantityType hi)
-      {
-      
-         return processIdentifierHasQuantityType(hi);
-      
-      }
-      
-      else if (parseable instanceof IdentifierIsType ii)
-      {
-      
-         return processIdentifierIsType(ii);
-      
-      }
-      
-      else if (parseable instanceof Type t)
-      {
-         
-         return processType(t);
-         
-      }
-      
-      else
-      {
-      
-         throw new IllegalArgumentException("Invalid type");
-      
-      }
-   
    }
    
    private Response processFrequencyTypeHasQuantityType(FrequencyTypeHasQuantityType hasRule)
@@ -612,7 +583,7 @@ public class RulesEngine
       if (this.types.contains(type))
       {
       
-         return Response.ALREADY_EXISTS;
+         return Response.ALREADY_EXISTS_SO_NO_ACTION;
       
       }
       

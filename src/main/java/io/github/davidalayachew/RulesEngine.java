@@ -35,10 +35,9 @@ public class RulesEngine
             FrequencyType, 
             FrequencyTypeHasQuantityType, 
             FrequencyTypeIsType, 
-            FrequencyTypeRelationship
+            FrequencyTypeRelationship,
+            IsIdentifierType
    {}
-   
-   private interface Regex {}
    
    private enum Frequency
    {
@@ -73,7 +72,7 @@ public class RulesEngine
             {
             
                case HAS    -> this.name();
-               case IS_A   -> this.name().replace("_", " ");
+               case IS_A   -> this.name().replace("_", " ").replace(" A", "(?: A|)");
             
             };
       
@@ -85,8 +84,9 @@ public class RulesEngine
    {
    
       OK,
-      ALREADY_EXISTS_SO_NO_ACTION,
       NOT_YET_IMPLEMENTED,
+      CORRECT,
+      INCORRECT,
       ;
    
    }
@@ -125,7 +125,7 @@ public class RulesEngine
                      case "FrequencyTypeRelationship"    -> List.of("EVERY", "A", "IS A");
                      case "FrequencyTypeHasQuantityType" -> List.of("EVERY", "A", "1", "A");
                      case "FrequencyTypeIsType"          -> List.of("EVERY", "A", "A");
-                     default                             -> Collections.emptyList();
+                     default                             -> throw new IllegalArgumentException("Forgot to update this method!");
                   
                   };
             
@@ -136,16 +136,17 @@ public class RulesEngine
                switch (godForgiveMe)
                {
                
-                  case Type t                               -> map.put(Type.regex, Type::new);
-                  case Quantity q                           -> map.put(Quantity.regex, Quantity::new);
-                  case QuantityType qt                      -> map.put(QuantityType.regex, QuantityType::new);
-                  case Identifier i                         -> map.put(Identifier.regex, Identifier::new);
-                  case IdentifierHasQuantityType ihqt       -> map.put(IdentifierHasQuantityType.regex, IdentifierHasQuantityType::new);
-                  case IdentifierIsType iit                 -> map.put(IdentifierIsType.regex, IdentifierIsType::new);
-                  case FrequencyType ft                     -> map.put(FrequencyType.regex, FrequencyType::new);
-                  case FrequencyTypeRelationship ftr        -> map.put(FrequencyTypeRelationship.regex, FrequencyTypeRelationship::new);
-                  case FrequencyTypeHasQuantityType fthqt   -> map.put(FrequencyTypeHasQuantityType.regex, FrequencyTypeHasQuantityType::new);
-                  case FrequencyTypeIsType ftit             -> map.put(FrequencyTypeIsType.regex, FrequencyTypeIsType::new);
+               //    case Type t                               -> map.put(Type.regex, Type::new);
+               //    case Quantity q                           -> map.put(Quantity.regex, Quantity::new);
+               //    case QuantityType qt                      -> map.put(QuantityType.regex, QuantityType::new);
+               //    case Identifier i                         -> map.put(Identifier.regex, Identifier::new);
+               //    case IdentifierHasQuantityType ihqt       -> map.put(IdentifierHasQuantityType.regex, IdentifierHasQuantityType::new);
+               //    case IdentifierIsType iit                 -> map.put(IdentifierIsType.regex, IdentifierIsType::new);
+               //    case FrequencyType ft                     -> map.put(FrequencyType.regex, FrequencyType::new);
+               //    case FrequencyTypeRelationship ftr        -> map.put(FrequencyTypeRelationship.regex, FrequencyTypeRelationship::new);
+               //    case FrequencyTypeHasQuantityType fthqt   -> map.put(FrequencyTypeHasQuantityType.regex, FrequencyTypeHasQuantityType::new);
+               //    case FrequencyTypeIsType ftit             -> map.put(FrequencyTypeIsType.regex, FrequencyTypeIsType::new);
+               //    case IsIdentifierType iit                 -> map.put(IsIdentifierType.regex, IsIdentifierType::new);
                
                }
             
@@ -374,7 +375,41 @@ public class RulesEngine
     
    }
 
-   private record Query() {}
+   private record IsIdentifierType(Identifier identifier, Type type) implements Parseable
+   {
+   
+      private static final Pattern regex =   // Unfortunately, I don't (currently) see a way to make this easy or neat or clean
+         Pattern.compile(
+            "(?:"                                     // Beginning of non-capturing group
+                  // Starting Option 1---------------------------------------------------
+                  + "IS"                              // not a group             IS
+                  + " " + Identifier.regex            // group 1                 Identifier (ex. DAVID)
+                  + "(?: A|)"                         // not a capturing group   Optional A
+                  + " " + Type.regex                  // group 2                 Type (ex. MAN)
+                  + "(?:\\?|)"                        // not a capturing group   Optional question mark at the end of the sentence
+      
+                                                      //                         the full example = IS DAVID A MAN? --- A and ? are optional
+                  // Finished Option 1---------------------------------------------------
+            + "|"
+                  // Starting Option 2---------------------------------------------------
+                  + Identifier.regex                  // group 1                 Identifier (ex. DAVID)
+                  + " " + Relationship.IS_A.pattern() // not a capturing group   (ex. IS A) --- A is optional
+                  + " " + Type.regex                  // group 2                 Type (ex. MAN)
+                  + "\\?"                             // not a group             REQUIRED question mark at the end of the sentence
+                     
+                                                      //                         the full example = DAVID IS A MAN? --- A is optional, BUT NOT ?
+                  // Finished Option 2---------------------------------------------------
+            + ")"                                     // End of non-capturing group
+         );
+      
+      public IsIdentifierType(List<String> strings)
+      {
+      
+         this(new Identifier(strings.subList(0, 1)), new Type(strings.subList(1, 2)));
+      
+      }
+    
+   }
    
    private final Collection<Type> types = new HashSet<>();
    private final Map<Identifier, Set<QuantityType>> hasInstances = new HashMap<>();
@@ -448,7 +483,7 @@ public class RulesEngine
       if (parseable.isPresent())
       {
       
-         Response response = processParseable(parseable.orElseThrow());
+         String response = processParseable(parseable.orElseThrow());
          
          newDisplayAreaText += "\n\t" + response;
       
@@ -483,16 +518,17 @@ public class RulesEngine
       return switch (parseable)
                {
                
-                  case Type t                               -> Response.NOT_YET_IMPLEMENTED;//processType(t);
-                  case Quantity q                           -> Response.NOT_YET_IMPLEMENTED;
-                  case QuantityType qt                      -> Response.NOT_YET_IMPLEMENTED;
-                  case Identifier i                         -> Response.NOT_YET_IMPLEMENTED;
-                  case IdentifierHasQuantityType ihqt       -> processIdentifierHasQuantityType(ihqt);
-                  case IdentifierIsType iit                 -> processIdentifierIsType(iit);
-                  case FrequencyType ft                     -> Response.NOT_YET_IMPLEMENTED;
-                  case FrequencyTypeRelationship ftr        -> Response.NOT_YET_IMPLEMENTED;
-                  case FrequencyTypeHasQuantityType fthqt   -> processFrequencyTypeHasQuantityType(fthqt);
-                  case FrequencyTypeIsType ftit             -> processFrequencyTypeIsType(ftit);
+         //          case Type t                               -> Response.NOT_YET_IMPLEMENTED;//processType(t);
+         //          case Quantity q                           -> Response.NOT_YET_IMPLEMENTED;
+         //          case QuantityType qt                      -> Response.NOT_YET_IMPLEMENTED;
+         //          case Identifier i                         -> Response.NOT_YET_IMPLEMENTED;
+         //          case IdentifierHasQuantityType ihqt       -> processIdentifierHasQuantityType(ihqt);
+         //          case IdentifierIsType iit                 -> processIdentifierIsType(iit);
+         //          case FrequencyType ft                     -> Response.NOT_YET_IMPLEMENTED;
+         //          case FrequencyTypeRelationship ftr        -> Response.NOT_YET_IMPLEMENTED;
+         //          case FrequencyTypeHasQuantityType fthqt   -> processFrequencyTypeHasQuantityType(fthqt);
+         //          case FrequencyTypeIsType ftit             -> processFrequencyTypeIsType(ftit);
+         //          case IsIdentifierType iit                 -> processIsIdentifierType(iit);
                
                };
                
@@ -501,6 +537,33 @@ public class RulesEngine
    
    private Response processFrequencyTypeHasQuantityType(FrequencyTypeHasQuantityType hasRule)
    {
+   
+      for (Map.Entry<FrequencyType, Set<QuantityType>> eachEntry : hasRules.entrySet())
+      {
+      
+      FrequencyType givenFrequencyType = hasRule.frequencyType();
+      
+      if (eachEntry.getKey().equals(givenFrequencyType))
+      {
+      
+      Frequency givenFrequency = givenFrequencyType.frequency();
+      
+      if (Frequency.EVERY.equals(givenFrequency))
+      {
+      
+      
+      }
+      
+      else if (Frequency.NONE.equals(givenFrequency))
+      {
+      
+      
+      
+      }
+      
+      }
+      
+      }
    
       this.hasRules.merge(
          hasRule.frequencyType(),
@@ -595,6 +658,95 @@ public class RulesEngine
          return Response.OK;
       
       }
+   
+   }
+
+   private Response processIsIdentifierType(IsIdentifierType isQuery)
+   {
+   
+      return recursiveIsQuery(isQuery.identifier(), isQuery.type(), isQuery.type());
+   
+   }
+   
+   private Response recursiveIsQuery(Identifier identifier, Type desiredType, Type potentialMatchingType)
+   {
+   
+      for (Map.Entry<Identifier, Set<Type>> instance : this.isInstances.keySet())
+      {
+      
+         if (instance.identifier().equals(identifier) && instance.getValue().contains(desiredType))
+         {
+         
+            return Response.CORRECT;
+         
+         }
+         
+         else
+         {
+         
+         
+         
+         }
+      
+      }
+   
+   }
+
+   private void findAllTypesThatIdentifierIs(Identifier identifier, Set<Type> types)
+   {
+   
+      for (Map.Entry<Identifier, Set<Type>> eachEntry : isInstances.keySet())
+      {
+      
+         for (Type eachType : eachEntry.getValue())
+         {
+         
+            if (!types.contains(eachType))
+            {
+            
+               types.add(eachType);
+               types.addAll(findAllTypesForType(eachType));
+            
+            }
+         
+         }
+      
+      }
+   
+   }
+
+   private Set<Type> findAllTypesForType(Type type)
+   {
+   
+      Set<Type> types = new HashSet<>();
+   
+      for (Map.Entry<FrequencyType, Set<Type>> eachEntry : this.isRules.entrySet())
+      {
+      
+         FrequencyType everyX = new FrequencyType(Frequency.EVERY, type);
+      
+         if (eachEntry.getKey().equals(everyX))
+         {
+         
+            types.addAll(eachEntry.getValue());
+         
+            for (Type eachType : eachEntry.getValue())
+            {
+            
+               if (!types.contains(eachType))
+               {
+               
+                  types.addAll(findAllTypesForType(eachType));
+               
+               }
+            
+            }
+         
+         }
+      
+      }
+   
+      return types;
    
    }
 

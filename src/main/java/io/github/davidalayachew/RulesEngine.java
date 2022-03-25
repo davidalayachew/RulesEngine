@@ -91,6 +91,16 @@ public class RulesEngine
    
    }
 
+   private enum QueryModifier
+   {
+   
+      MUST_EQUAL,
+      CAN_EQUAL,
+      CANNOT_EQUAL,
+      ;
+   
+   }
+
    private final class ClassParser
    {
    
@@ -411,7 +421,8 @@ public class RulesEngine
     
    }
    
-   private final Collection<Type> types = new HashSet<>();
+   //private record
+   
    private final Map<Identifier, Set<QuantityType>> hasInstances = new HashMap<>();
    private final Map<Identifier, Set<Type>> isInstances = new HashMap<>();
    private final Map<FrequencyType, Set<QuantityType>> hasRules = new HashMap<>();
@@ -483,7 +494,7 @@ public class RulesEngine
       if (parseable.isPresent())
       {
       
-         String response = processParseable(parseable.orElseThrow());
+         String response = processParseable(parseable.orElseThrow()).toString();
          
          newDisplayAreaText += "\n\t" + response;
       
@@ -541,34 +552,18 @@ public class RulesEngine
       for (Map.Entry<FrequencyType, Set<QuantityType>> eachEntry : hasRules.entrySet())
       {
       
-      FrequencyType givenFrequencyType = hasRule.frequencyType();
-      
-      if (eachEntry.getKey().equals(givenFrequencyType))
-      {
-      
-      Frequency givenFrequency = givenFrequencyType.frequency();
-      
-      if (Frequency.EVERY.equals(givenFrequency))
-      {
-      
-      
-      }
-      
-      else if (Frequency.NONE.equals(givenFrequency))
-      {
-      
-      
-      
-      }
-      
-      }
-      
+         FrequencyType givenFrequencyType = hasRule.frequencyType();
+         
+         Map<Identifier, Set<QuantityType>> allHasInstances = findAllHasInstances();
+         
+         Map<FrequencyType, Set<QuantityType>> allHasRules = findAllHasRules();
+         
       }
    
       this.hasRules.merge(
          hasRule.frequencyType(),
          new HashSet<>(Arrays.asList(hasRule.quantityType())),
-         (oldSet, newSet) -> {oldSet.addAll(newSet);return oldSet;}
+         RulesEngine::merge
          );
          
       return Response.OK;
@@ -581,7 +576,7 @@ public class RulesEngine
       this.isRules.merge(
          isRule.frequencyType(),
          new HashSet<>(Arrays.asList(isRule.type())),
-         (oldSet, newSet) -> {oldSet.addAll(newSet);return oldSet;}
+         RulesEngine::merge
          );
    
       return Response.OK;
@@ -591,8 +586,6 @@ public class RulesEngine
    private Response processIdentifierHasQuantityType(IdentifierHasQuantityType hasInstance)
    {
    
-      processType(hasInstance.quantityType().type());
-      
       Set<QuantityType> quantityTypes = new HashSet<>(Arrays.asList(hasInstance.quantityType()));
       
       FrequencyType everyX = new FrequencyType(Frequency.EVERY, hasInstance.quantityType().type());
@@ -607,7 +600,7 @@ public class RulesEngine
       this.hasInstances.merge(
          hasInstance.identifier(),
          quantityTypes,
-         (oldSet, newSet) -> {oldSet.addAll(newSet);return oldSet;}
+         RulesEngine::merge
          );
    
       return Response.OK;
@@ -617,8 +610,6 @@ public class RulesEngine
    private Response processIdentifierIsType(IdentifierIsType isInstance)
    {
    
-      processType(isInstance.type());
-      
       Set<Type> types = new HashSet<>(Arrays.asList(isInstance.type()));
       
       FrequencyType everyX = new FrequencyType(Frequency.EVERY, isInstance.type());
@@ -633,92 +624,43 @@ public class RulesEngine
       this.isInstances.merge(
          isInstance.identifier(),
          types,
-         (oldSet, newSet) -> {oldSet.addAll(newSet);return oldSet;}
+         RulesEngine::merge
          );
    
       return Response.OK;
    
    }
 
-   private Response processType(Type type)
+   private Map<FrequencyType, Set<Type>> findAllIsRules()
    {
    
-      if (this.types.contains(type))
+      Map<FrequencyType, Set<Type>> allIsRules = copyOf(this.isRules);
+   
+      for (Map.Entry<FrequencyType, Set<Type>> eachEntry : this.isRules.entrySet())
       {
       
-         return Response.ALREADY_EXISTS_SO_NO_ACTION;
-      
-      }
-      
-      else
-      {
-      
-         this.types.add(type);
-         
-         return Response.OK;
-      
-      }
-   
-   }
-
-   private Response processIsIdentifierType(IsIdentifierType isQuery)
-   {
-   
-      return recursiveIsQuery(isQuery.identifier(), isQuery.type(), isQuery.type());
-   
-   }
-   
-   private Response recursiveIsQuery(Identifier identifier, Type desiredType, Type potentialMatchingType)
-   {
-   
-      for (Map.Entry<Identifier, Set<Type>> instance : this.isInstances.keySet())
-      {
-      
-         if (instance.identifier().equals(identifier) && instance.getValue().contains(desiredType))
+         if (Frequency.EVERY.equals(eachEntry.getKey().frequency()))
          {
          
-            return Response.CORRECT;
-         
-         }
-         
-         else
-         {
-         
-         
+            Set<Type> types = findAllParentTypes(eachEntry.getKey().type());
+            allIsRules.merge(
+                  eachEntry.getKey(), 
+                  types, 
+                  RulesEngine::merge
+               );
          
          }
       
       }
+      
+      return allIsRules;
    
    }
-
-   private void findAllTypesThatIdentifierIs(Identifier identifier, Set<Type> types)
+   
+   private Set<Type> findAllParentTypes(Type type)
    {
    
-      for (Map.Entry<Identifier, Set<Type>> eachEntry : isInstances.keySet())
-      {
-      
-         for (Type eachType : eachEntry.getValue())
-         {
-         
-            if (!types.contains(eachType))
-            {
-            
-               types.add(eachType);
-               types.addAll(findAllTypesForType(eachType));
-            
-            }
-         
-         }
-      
-      }
-   
-   }
-
-   private Set<Type> findAllTypesForType(Type type)
-   {
-   
-      Set<Type> types = new HashSet<>();
+      Set<Type> parentTypes = new HashSet<>();
    
       for (Map.Entry<FrequencyType, Set<Type>> eachEntry : this.isRules.entrySet())
       {
@@ -728,15 +670,14 @@ public class RulesEngine
          if (eachEntry.getKey().equals(everyX))
          {
          
-            types.addAll(eachEntry.getValue());
-         
             for (Type eachType : eachEntry.getValue())
             {
             
-               if (!types.contains(eachType))
+               if (!parentTypes.contains(eachType))
                {
                
-                  types.addAll(findAllTypesForType(eachType));
+                  parentTypes.addAll(findAllParentTypes(eachType));
+                  parentTypes.add(eachType);
                
                }
             
@@ -746,7 +687,62 @@ public class RulesEngine
       
       }
    
-      return types;
+   }
+
+   private Map<Identifier, Set<Type>> findAllIsInstances()
+   {
+   
+      Map<Identifier, Set<Type>> allIsInstances = copyOf(this.isInstances);
+      Map<FrequencyType, Set<Type>> allIsRules = findAllIsRules();
+      
+      for (Map.Entry<Identifier, Set<Type>> eachIsInstance : this.isInstances.entrySet())
+      {
+      
+         for (Type eachType : eachIsInstance.getValue())
+         {
+         
+            for (Map.Entry<FrequencyType, Set<Type>> eachIsRule : allIsRules.entrySet())
+            {
+            
+               if (eachType.equals(eachIsRule.getKey().type()))
+               {
+               
+                  allIsInstances.merge(
+                        eachIsInstance.getKey(),
+                        eachIsRule.getValue(),
+                        RulesEngine::merge
+                     );
+               
+               }
+            
+            }
+         
+         }
+      
+      }
+      
+      return allIsInstances;
+   
+   }
+
+   private Map<FrequencyType, Set<QuantityType>> findAllHasRules()
+   {
+   
+   
+   
+   }
+
+   private Map<Identifier, Set<QuantityType>> findAllHasInstances()
+   {
+   
+      Map<Identifier, Set<QuantityType>> allHasInstances = this.hasInstances;
+      
+      for (Map.Entry<Identifier, Set<QuantityType>> eachEntry : this.hasInstances.entrySet())
+      {
+      
+         Map<Identifier, Set<Type>> allIsInstances = this.findAllIsInstances();
+      
+      }
    
    }
 
@@ -794,6 +790,30 @@ public class RulesEngine
       }
       
       throw new IllegalStateException();
+   
+   }
+   
+   private static <K, V> Map<K, Set<V>> copyOf(Map<K, Set<V>> oldMap)
+   {
+   
+      Map<K, Set<V>> newMap = new HashMap<>();
+      
+      for (Map.Entry<K, Set<V>> eachEntry : oldMap.entrySet())
+      {
+      
+         newMap.put(eachEntry.getKey(), new HashSet<>(eachEntry.getValue()));
+      
+      }
+      
+      return newMap;
+   
+   }
+   
+   private static <T> Set<T> merge(Set<T> oldSet, Set<T> newSet)
+   {
+   
+      oldSet.addAll(newSet);
+      return oldSet;
    
    }
    

@@ -642,7 +642,7 @@ public class RulesEngine
          if (Frequency.EVERY.equals(eachEntry.getKey().frequency()))
          {
          
-            Set<Type> types = findAllParentTypes(eachEntry.getKey().type());
+            Set<Type> types = findAllChildTypesOf(eachEntry.getKey().type());
             allIsRules.merge(
                   eachEntry.getKey(), 
                   types, 
@@ -657,7 +657,7 @@ public class RulesEngine
    
    }
    
-   private Set<Type> findAllParentTypes(Type type)
+   private Set<Type> findAllChildTypesOf(Type type)
    {
    
       Set<Type> parentTypes = new HashSet<>();
@@ -728,7 +728,47 @@ public class RulesEngine
    private Map<FrequencyType, Set<QuantityType>> findAllHasRules()
    {
    
+      Map<FrequencyType, Set<QuantityType>> allHasRules = copyOf(this.hasRules);
+      Map<FrequencyType, Set<Type>> allIsRules = this.findAllIsRules();
+      
+      for (Map.Entry<FrequencyType, Set<QuantityType>> eachHasRule : this.hasRules.entrySet())
+      {
+      
+         for (QuantityType eachQuantityType : eachHasRule.getValue())
+         {
+         
+            for (Map.Entry<FrequencyType, Set<Type>> eachIsRule : allIsRules.entrySet())
+            {
+            
+            //if ()
+            
+            }
+         
+         }
+      
+      }
    
+   }
+
+   private Set<QuantityType> findAllOwnedTypesOf(QuantityType type)
+   {
+   
+      Set<QuantityType> ownedTypes = new HashSet<>();
+      
+      for (Map.Entry<FrequencyType, Set<QuantityType>> eachEntry : this.hasRules.entrySet())
+      {
+      
+         FrequencyType everyX = new FrequencyType(Frequency.EVERY, type);
+         
+         for (QuantityType eachQuantityType : eachEntry.getValue())
+         {
+         
+            //MODIFY THE QUANTITY TYPE
+            ownedTypes.addAll();
+         
+         }
+      
+      }
    
    }
 

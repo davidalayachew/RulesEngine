@@ -651,7 +651,7 @@ public class RulesEngine
                .flatMap(Set::stream)
                .collect(Collectors.toUnmodifiableSet())
                ;
-
+      
          if (!allIsTypeValues.contains(givenType))
          {
          
@@ -663,12 +663,12 @@ public class RulesEngine
                      .flatMap(Set::stream)
                      .collect(Collectors.toUnmodifiableSet())
                      ;
-
+         
             if (!allHasTypeValues.contains(givenType))
             {
             
-            final Set<Type> allTypeKeys = 
-               Stream.of(
+               final Set<Type> allTypeKeys = 
+                  Stream.of(
                      this.hasRules.keySet(),
                      this.isRules.keySet()
                   )
@@ -680,7 +680,7 @@ public class RulesEngine
                if (!allTypeKeys.contains(givenType))
                {
                
-               return Response.UNKNOWN_TYPE;
+                  return Response.UNKNOWN_TYPE;
                
                }
             
@@ -720,7 +720,7 @@ public class RulesEngine
             else if (allIsRules.containsKey(noneX) && allIsRules.get(noneX).contains(givenType))
             {
             
-            return Response.INCORRECT;
+               return Response.INCORRECT;
             
             }
             

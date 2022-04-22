@@ -708,7 +708,8 @@ public class RulesEngine
          {
             
             final FrequencyType everyX = new FrequencyType(Frequency.EVERY, eachPossibleType);
-            final FrequencyType noneX = new FrequencyType(Frequency.NOT_A_SINGLE, eachPossibleType);
+            final FrequencyType nonePossibleX = new FrequencyType(Frequency.NOT_A_SINGLE, eachPossibleType);
+            final FrequencyType noneGivenX = new FrequencyType(Frequency.NOT_A_SINGLE, givenType);
                
             if (allIsRules.containsKey(everyX) && allIsRules.get(everyX).contains(givenType))
             {
@@ -717,12 +718,20 @@ public class RulesEngine
                
             }
             
-            else if (allIsRules.containsKey(noneX) && allIsRules.get(noneX).contains(givenType))
+            else if (allIsRules.containsKey(nonePossibleX) && allIsRules.get(nonePossibleX).contains(givenType))
             {
             
                return Response.INCORRECT;
             
             }
+            
+            else if (allIsRules.containsKey(noneGivenX) && allIsRules.get(noneGivenX).contains(eachPossibleType))
+            {
+            
+               return Response.INCORRECT;
+            
+            }
+            
             
          }
          

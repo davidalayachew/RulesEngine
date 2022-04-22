@@ -19,7 +19,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class RulesEngine
 {
@@ -38,6 +40,46 @@ public class RulesEngine
             FrequencyTypeRelationship,
             IsIdentifierType
    {}
+   
+   private interface ToString
+   {
+   
+      default public String cleanString()
+      {
+      
+         try
+         {
+         
+            String output = "";
+         
+            if (this.getClass().isRecord())
+            {
+            
+               var components = this.getClass().getRecordComponents();
+            
+               for (var each : components)
+               {
+               
+                  output += " " + each.getAccessor().invoke(this);
+               
+               }
+            
+            }
+         
+            return output;
+         
+         }
+         
+         catch (IllegalAccessException | InvocationTargetException e)
+         {
+         
+            throw new IllegalStateException(e);
+         
+         }
+      
+      }
+   
+   }
    
    private enum Frequency
    {
@@ -86,6 +128,7 @@ public class RulesEngine
       OK,
       NOT_YET_IMPLEMENTED,
       CORRECT,
+      POSSIBLY,
       INCORRECT,
       UNKNOWN_IDENTIFIER,
       UNKNOWN_TYPE,
@@ -221,7 +264,7 @@ public class RulesEngine
    
    }
 
-   private record Type(String name) implements Parseable
+   private record Type(String name) implements Parseable, ToString
    {
    
       public static final Pattern regex = Pattern.compile("([a-zA-Z]+[a-zA-Z0-9]*)");
@@ -233,16 +276,12 @@ public class RulesEngine
       
       }
    
-      public String toString()
-      {
-      
-         return name;
-      
-      }
-   
+      public String toString() {
+         return cleanString(); }
+    
    }
 
-   private record Identifier(String name)  implements Parseable
+   private record Identifier(String name)  implements Parseable, ToString
    {
    
       private static final Pattern regex = Pattern.compile("([a-zA-Z]+[a-zA-Z0-9]*)");
@@ -254,16 +293,12 @@ public class RulesEngine
       
       }
    
-      public String toString()
-      {
-      
-         return name;
-      
-      }
-   
+      public String toString() {
+         return cleanString(); }
+    
    }
 
-   private record Quantity(long count) implements Parseable
+   private record Quantity(long count) implements Parseable, ToString
    {
    
       public static final Pattern regex = Pattern.compile("(A|\\d{1,7})");
@@ -275,16 +310,12 @@ public class RulesEngine
       
       }
    
-      public String toString()
-      {
-      
-         return "" + count;
-      
-      }
-   
+      public String toString() {
+         return cleanString(); }
+    
    }
 
-   private record QuantityType(Quantity quantity, Type type) implements Parseable
+   private record QuantityType(Quantity quantity, Type type) implements Parseable, ToString
    {
    
       public static final Pattern regex = Pattern.compile(                          //If pattern is surrounded by () then it's a group
@@ -302,9 +333,12 @@ public class RulesEngine
       
       }
    
+      public String toString() {
+         return cleanString(); }
+    
    }
 
-   private record IdentifierHasQuantityType(Identifier identifier, QuantityType quantityType) implements Parseable
+   private record IdentifierHasQuantityType(Identifier identifier, QuantityType quantityType) implements Parseable, ToString
    {
    
       private static final Pattern regex = Pattern.compile(                                     //If pattern is surrounded by () then it's a group
@@ -320,9 +354,12 @@ public class RulesEngine
       
       }
       
+      public String toString() {
+         return cleanString(); }
+    
    }
 
-   private record IdentifierIsType(Identifier identifier, Type type) implements Parseable
+   private record IdentifierIsType(Identifier identifier, Type type) implements Parseable, ToString
    {
    
       private static final Pattern regex = Pattern.compile(                                     //If pattern is surrounded by () then it's a group
@@ -338,9 +375,12 @@ public class RulesEngine
       
       }
       
+      public String toString() {
+         return cleanString(); }
+    
    }
 
-   private record FrequencyType(Frequency frequency, Type type) implements Parseable
+   private record FrequencyType(Frequency frequency, Type type) implements Parseable, ToString
    {
    
       private static final Pattern regex = Pattern.compile(                               //If pattern is surrounded by () then it's a group
@@ -355,16 +395,12 @@ public class RulesEngine
       
       }
       
-      public String toString()
-      {
-      
-         return frequency + " " + type;
-      
-      }
-   
+      public String toString() {
+         return cleanString(); }
+    
    }
 
-   private record FrequencyTypeRelationship(FrequencyType frequencyType, Relationship relationship) implements Parseable
+   private record FrequencyTypeRelationship(FrequencyType frequencyType, Relationship relationship) implements Parseable, ToString
    {
    
       private static final Pattern regex = Pattern.compile(                               //If pattern is surrounded by () then it's a group
@@ -379,9 +415,12 @@ public class RulesEngine
       
       }
       
+      public String toString() {
+         return cleanString(); }
+    
    }
 
-   private record FrequencyTypeHasQuantityType(FrequencyType frequencyType, QuantityType quantityType) implements Parseable
+   private record FrequencyTypeHasQuantityType(FrequencyType frequencyType, QuantityType quantityType) implements Parseable, ToString
    {
    
       private static final Pattern regex = Pattern.compile(                                     //If pattern is surrounded by () then it's a group
@@ -397,9 +436,12 @@ public class RulesEngine
       
       }
     
+      public String toString() {
+         return cleanString(); }
+    
    }
 
-   private record FrequencyTypeIsType(FrequencyType frequencyType, Type type) implements Parseable
+   private record FrequencyTypeIsType(FrequencyType frequencyType, Type type) implements Parseable, ToString
    {
    
       private static final Pattern regex = Pattern.compile(                                     //If pattern is surrounded by () then it's a group
@@ -415,9 +457,12 @@ public class RulesEngine
       
       }
     
+      public String toString() {
+         return cleanString(); }
+    
    }
 
-   private record IsIdentifierType(Identifier identifier, Type type) implements Parseable
+   private record IsIdentifierType(Identifier identifier, Type type) implements Parseable, ToString
    {
    
       private static final Pattern regex =   // Unfortunately, I don't (currently) see a way to make this easy or neat or clean
@@ -450,6 +495,9 @@ public class RulesEngine
          this(new Identifier(strings.subList(0, 1)), new Type(strings.subList(1, 2)));
       
       }
+      
+      public String toString() {
+         return cleanString(); }
     
    }
    
@@ -575,7 +623,7 @@ public class RulesEngine
                
                };
          
-      // throw new UnsupportedOperationException("Comment me out because jGRASP!");
+      //throw new UnsupportedOperationException("Comment me out because jGRASP!");
    
    
    }
@@ -595,17 +643,53 @@ public class RulesEngine
    
       {
       
-         var temp1 = this.isInstances.values().stream().flatMap(Set::stream).toList();
-         var temp2 = this.isRules.values().stream().flatMap(Set::stream).toList();
-      
-         if (!temp1.contains(givenType) && !temp2.contains(givenType))
+         final Set<Type> allIsTypeValues =
+            Stream.of(
+                  flatMap(this.isInstances, Map::values, Function.identity()),
+                  flatMap(this.isRules, Map::values, Function.identity())
+               )
+               .flatMap(Set::stream)
+               .collect(Collectors.toUnmodifiableSet())
+               ;
+
+         if (!allIsTypeValues.contains(givenType))
          {
          
-            return Response.UNKNOWN_TYPE;
+            final Set<Type> allHasTypeValues =
+               Stream.of(
+                     flatMap(this.hasInstances, Map::values, quantityType -> quantityType.type()),
+                        flatMap(this.hasRules, Map::values, quantityType -> quantityType.type())
+                     )
+                     .flatMap(Set::stream)
+                     .collect(Collectors.toUnmodifiableSet())
+                     ;
+
+            if (!allHasTypeValues.contains(givenType))
+            {
+            
+            final Set<Type> allTypeKeys = 
+               Stream.of(
+                     this.hasRules.keySet(),
+                     this.isRules.keySet()
+                  )
+                  .flatMap(Set::stream)
+                  .map(FrequencyType::type)
+                  .collect(Collectors.toUnmodifiableSet())
+                  ;
+                  
+               if (!allTypeKeys.contains(givenType))
+               {
+               
+               return Response.UNKNOWN_TYPE;
+               
+               }
+            
+            }
          
          }
       
       }
+      
       final Set<Type> possibleTypes = this.isInstances.get(givenIdentifier);
          
       if (possibleTypes.contains(givenType))
@@ -624,6 +708,7 @@ public class RulesEngine
          {
             
             final FrequencyType everyX = new FrequencyType(Frequency.EVERY, eachPossibleType);
+            final FrequencyType noneX = new FrequencyType(Frequency.NOT_A_SINGLE, eachPossibleType);
                
             if (allIsRules.containsKey(everyX) && allIsRules.get(everyX).contains(givenType))
             {
@@ -632,11 +717,18 @@ public class RulesEngine
                
             }
             
+            else if (allIsRules.containsKey(noneX) && allIsRules.get(noneX).contains(givenType))
+            {
+            
+            return Response.INCORRECT;
+            
+            }
+            
          }
          
       }
       
-      return Response.INCORRECT;
+      return Response.POSSIBLY;
    
    }
    
@@ -967,7 +1059,19 @@ public class RulesEngine
       return oldSet;
    
    }
+
+   private static <K, V, O, A> Set<V> flatMap(Map<K, Set<O>> map, Function<Map<K, Set<O>>, Collection<Set<O>>> mapPortion, Function<O, V> converter)
+   {
    
+      return 
+         mapPortion.apply(map).stream()
+            .flatMap(Set::stream)
+            .map(converter::apply)
+            .collect(Collectors.toCollection(HashSet::new))
+            ;
+   
+   }
+
    public static void main(String[] args)
    {
    

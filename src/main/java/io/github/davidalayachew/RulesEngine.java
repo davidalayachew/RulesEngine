@@ -1,10 +1,17 @@
 package io.github.davidalayachew;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.*;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -534,7 +541,7 @@ public class RulesEngine
    
    }
    
-   private void constructJPanel(JPanel panel)
+   private void constructJPanel(final JPanel panel)
    {
    
       JButton clear = new JButton("Clear");
@@ -543,7 +550,12 @@ public class RulesEngine
       JScrollPane scrollPane = new JScrollPane(displayArea);
       
       displayArea.setEditable(false);
-      scrollPane.setPreferredSize(new Dimension(400, 400));   
+      //displayArea.setPreferredScrollableViewportSize(new Dimension(400, 400));
+      scrollPane.setPreferredSize(new Dimension(400, 400));
+      scrollPane.setMaximumSize(new Dimension(400, 400));
+      scrollPane.setMinimumSize(new Dimension(400, 100));
+      scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+      scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
       
       clear.addActionListener(event -> setText(typingArea, "", displayArea, ""));
       typingArea.addActionListener(event -> processText(typingArea, "", displayArea, typingArea.getText()));
@@ -830,7 +842,7 @@ public class RulesEngine
          if (Frequency.EVERY.equals(eachEntry.getKey().frequency()))
          {
          
-            Set<Type> types = findAllChildTypesOf(eachEntry.getKey().type());
+            final Set<Type> types = findAllChildTypesOf(eachEntry.getKey().type());
             allIsRules.merge(
                   eachEntry.getKey(), 
                   types, 

@@ -41,8 +41,8 @@ public class RulesEngine
 
    private sealed interface Parseable
          permits
-            Type, 
             Identifier, 
+            Type, 
             IdentifierIsType, 
             IdentifierHasQuantityType, 
             Quantity, 
@@ -184,9 +184,9 @@ public class RulesEngine
                   switch (each.getSimpleName())
                   {
                   
+                     case "Identifier"                   -> List.of("A");
                      case "Type"                         -> List.of("A");
                      case "Quantity", "QuantityType"     -> List.of("1", "A");
-                     case "Identifier"                   -> List.of("A");
                      case "IdentifierHasQuantityType"    -> List.of("A", "1", "A");
                      case "IdentifierIsType"             -> List.of("A", "A");
                      case "FrequencyType"                -> List.of("EVERY", "A", "A");
@@ -205,10 +205,10 @@ public class RulesEngine
                switch (godForgiveMe)
                {
                
+                  case Identifier i                         -> map.put(Identifier.regex, Identifier::new);
                   case Type t                               -> map.put(Type.regex, Type::new);
                   case Quantity q                           -> map.put(Quantity.regex, Quantity::new);
                   case QuantityType qt                      -> map.put(QuantityType.regex, QuantityType::new);
-                  case Identifier i                         -> map.put(Identifier.regex, Identifier::new);
                   case IdentifierHasQuantityType ihqt       -> map.put(IdentifierHasQuantityType.regex, IdentifierHasQuantityType::new);
                   case IdentifierIsType iit                 -> map.put(IdentifierIsType.regex, IdentifierIsType::new);
                   case FrequencyType ft                     -> map.put(FrequencyType.regex, FrequencyType::new);
@@ -537,7 +537,7 @@ public class RulesEngine
       frame.setLocation(500, 200);
       frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       
-      JPanel panel = new JPanel(new BorderLayout());
+      JPanel panel = new JPanel(new GridLayout());
       
       constructJPanel(panel);
       
@@ -556,9 +556,11 @@ public class RulesEngine
       final JList<Identifier> identifiersList = new JList<>(identifiersModel);
       final JList<Type> typesList = new JList<>(typesModel);
    
-      final JTextField typingArea = new JTextField(20);
+      final JTextField typingArea = new JTextField();
       final JTextArea displayArea = new JTextArea();
-      final JScrollPane scrollPane = new JScrollPane(displayArea);
+      final JScrollPane displayAreaScrollPane = new JScrollPane(displayArea);
+      
+      typingArea.setText("Enter your text here!");
       
       displayArea.setEditable(false);
       
@@ -649,8 +651,8 @@ public class RulesEngine
          
             final JPanel identifiersPanel = new JPanel(new BorderLayout());
             
-            identifiersPanel.add(new JLabel("Identifiers"), BorderLayout.PAGE_START);
-            identifiersPanel.add(identifiersList, BorderLayout.CENTER);
+            identifiersPanel.add(new JLabel("IDENTIFIERS"), BorderLayout.PAGE_START);
+            identifiersPanel.add(new JScrollPane(identifiersList), BorderLayout.CENTER);
          
             return identifiersPanel;
          
@@ -662,18 +664,32 @@ public class RulesEngine
          
             final JPanel typesPanel = new JPanel(new BorderLayout());
             
-            typesPanel.add(new JLabel("Types"), BorderLayout.PAGE_START);
-            typesPanel.add(typesList, BorderLayout.CENTER);
+            typesPanel.add(new JLabel("TYPES"), BorderLayout.PAGE_START);
+            typesPanel.add(new JScrollPane(typesList), BorderLayout.CENTER);
          
             return typesPanel;
          
          };
+
+         final Supplier<JPanel> ioPanel =
+            () -> 
+            {
+               
+               final JPanel innerPanel = new JPanel(new BorderLayout());
+               
+               innerPanel.setMinimumSize(new Dimension(50, 50));
+
+            innerPanel.add(typingArea, BorderLayout.PAGE_START);
+            innerPanel.add(displayAreaScrollPane, BorderLayout.CENTER);
+            innerPanel.add(buttonPanel, BorderLayout.PAGE_END);
+            
+            return innerPanel;
+            
+            };
    
-      panel.add(identifiers.get(), BorderLayout.LINE_START);
-      panel.add(types.get(), BorderLayout.LINE_END);
-      panel.add(typingArea, BorderLayout.PAGE_START);
-      panel.add(scrollPane, BorderLayout.CENTER);
-      panel.add(buttonPanel, BorderLayout.PAGE_END);
+      panel.add(identifiers.get());
+      panel.add(ioPanel.get());
+      panel.add(types.get());
    
    }
    

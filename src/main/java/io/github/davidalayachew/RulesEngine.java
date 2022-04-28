@@ -1,7 +1,10 @@
 package io.github.davidalayachew;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -10,6 +13,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -23,7 +27,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -531,7 +537,7 @@ public class RulesEngine
       frame.setLocation(500, 200);
       frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       
-      JPanel panel = new JPanel();
+      JPanel panel = new JPanel(new BorderLayout());
       
       constructJPanel(panel);
       
@@ -544,25 +550,130 @@ public class RulesEngine
    private void constructJPanel(final JPanel panel)
    {
    
-      JButton clear = new JButton("Clear");
+      final DefaultListModel<Identifier> identifiersModel = new DefaultListModel<>();
+      final DefaultListModel<Type> typesModel = new DefaultListModel<>();
+   
+      final JList<Identifier> identifiersList = new JList<>(identifiersModel);
+      final JList<Type> typesList = new JList<>(typesModel);
+   
       final JTextField typingArea = new JTextField(20);
       final JTextArea displayArea = new JTextArea();
-      JScrollPane scrollPane = new JScrollPane(displayArea);
+      final JScrollPane scrollPane = new JScrollPane(displayArea);
       
       displayArea.setEditable(false);
-      //displayArea.setPreferredScrollableViewportSize(new Dimension(400, 400));
-      scrollPane.setPreferredSize(new Dimension(400, 400));
-      scrollPane.setMaximumSize(new Dimension(400, 400));
-      scrollPane.setMinimumSize(new Dimension(400, 100));
-      scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-      scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
       
+      record IdentifierType(List<Identifier> identifiers, List<Type> types) {}
+      
+      final Consumer<Optional<? extends Parseable>> populateLists =
+         potential ->
+         {
+            
+            if (potential.isPresent())
+            {
+            
+               final IdentifierType identifierType =
+                  switch (potential.get())
+                  {
+                  
+                     case Type t -> new IdentifierType(List.of(), List.of(t));
+                     case Identifier i -> new IdentifierType(List.of(i), List.of());
+                     case IdentifierIsType iit ->
+                           new IdentifierType(List.of(iit.identifier()), List.of(iit.type()));
+                                    
+                     case IdentifierHasQuantityType ihqt ->
+                           new IdentifierType(List.of(ihqt.identifier()), List.of(ihqt.quantityType().type()));
+                                    
+                     case Quantity q -> new IdentifierType(List.of(), List.of());
+                     case QuantityType qt -> new IdentifierType(List.of(), List.of(qt.type()));
+                     case FrequencyType ft -> new IdentifierType(List.of(), List.of(ft.type()));
+                     case FrequencyTypeHasQuantityType fthqt ->
+                           new IdentifierType(List.of(),
+                              List.of(
+                                 fthqt.frequencyType().type(),
+                                 fthqt.quantityType().type()));
+                                    
+                     case FrequencyTypeIsType ftit ->
+                           new IdentifierType(List.of(), List.of(ftit.frequencyType().type(), ftit.type()));
+                                    
+                     case FrequencyTypeRelationship ftr ->
+                           new IdentifierType(List.of(), List.of(ftr.frequencyType().type()));
+                                          
+                     case IsIdentifierType iit ->
+                           new IdentifierType(List.of(iit.identifier()), List.of(iit.type()));
+                        
+                  };
+            
+               for (Identifier each : identifierType.identifiers())
+               {
+                  
+                  if (!identifiersModel.contains(each))
+                  {
+                     
+                     identifiersModel.addElement(each);
+                  
+                  }
+                  
+               }
+            
+               for (Type each : identifierType.types())
+               {
+                  
+                  if (!typesModel.contains(each))
+                  {
+                     
+                     typesModel.addElement(each);
+                  
+                  }
+                  
+               }
+            
+            }
+            
+            panel.revalidate();
+         
+         };
+      
+      typingArea.addActionListener(
+            event -> populateLists.accept(processText(typingArea, "", displayArea, typingArea.getText()))
+         );
+   
+      final JButton clear = new JButton("Clear Logs");
       clear.addActionListener(event -> setText(typingArea, "", displayArea, ""));
-      typingArea.addActionListener(event -> processText(typingArea, "", displayArea, typingArea.getText()));
-       
+      
+      final JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
+      buttonPanel.add(clear);
+
+      final Supplier<JPanel> identifiers = 
+         () ->
+         {
+         
+            final JPanel identifiersPanel = new JPanel(new BorderLayout());
+            
+            identifiersPanel.add(new JLabel("Identifiers"), BorderLayout.PAGE_START);
+            identifiersPanel.add(identifiersList, BorderLayout.CENTER);
+         
+            return identifiersPanel;
+         
+         };
+   
+      final Supplier<JPanel> types = 
+         () ->
+         {
+         
+            final JPanel typesPanel = new JPanel(new BorderLayout());
+            
+            typesPanel.add(new JLabel("Types"), BorderLayout.PAGE_START);
+            typesPanel.add(typesList, BorderLayout.CENTER);
+         
+            return typesPanel;
+         
+         };
+   
+      panel.add(identifiers.get(), BorderLayout.LINE_START);
+      panel.add(types.get(), BorderLayout.LINE_END);
       panel.add(typingArea, BorderLayout.PAGE_START);
       panel.add(scrollPane, BorderLayout.CENTER);
-      panel.add(clear, BorderLayout.PAGE_END);
+      panel.add(buttonPanel, BorderLayout.PAGE_END);
    
    }
    
@@ -578,7 +689,7 @@ public class RulesEngine
    
    }
    
-   private void processText(JTextField typingArea, String newTypingAreaText, JTextArea displayArea, String newDisplayAreaText)
+   private Optional<? extends Parseable> processText(JTextField typingArea, String newTypingAreaText, JTextArea displayArea, String newDisplayAreaText)
    {
    
       Optional<? extends Parseable> parseable = convertToParseable(newDisplayAreaText);
@@ -601,6 +712,8 @@ public class RulesEngine
    
       newDisplayAreaText += "\n" + displayArea.getText();
       setText(typingArea, newTypingAreaText, displayArea, newDisplayAreaText);
+      
+      return parseable;
          
    }
    

@@ -533,7 +533,7 @@ public class RulesEngine
    
       JFrame frame = new JFrame("Rules Engine");
       
-      frame.setSize(500, 500);
+      frame.setSize(600, 500);
       frame.setLocation(500, 200);
       frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
       
@@ -563,6 +563,7 @@ public class RulesEngine
       typingArea.setText("Enter your text here!");
       
       displayArea.setEditable(false);
+      displayArea.setTabSize(4);
       
       record IdentifierType(List<Identifier> identifiers, List<Type> types) {}
       
@@ -650,9 +651,13 @@ public class RulesEngine
          {
          
             final JPanel identifiersPanel = new JPanel(new BorderLayout());
-            
+            // 
+         //    final JButton deleteAllButton = new JButton("Delete All");
+         //    deleteAllButton.addActionListener(event -> identifiersModel.clear());
+         //    
             identifiersPanel.add(new JLabel("IDENTIFIERS"), BorderLayout.PAGE_START);
             identifiersPanel.add(new JScrollPane(identifiersList), BorderLayout.CENTER);
+            //identifiersPanel.add(deleteAllButton, BorderLayout.PAGE_END);
          
             return identifiersPanel;
          

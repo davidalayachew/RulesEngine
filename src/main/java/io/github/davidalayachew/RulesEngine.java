@@ -10,8 +10,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.lang.reflect.Constructor;
@@ -69,11 +71,13 @@ public class RulesEngine
             {
             
                var components = this.getClass().getRecordComponents();
-            
-               for (var each : components)
+               
+               for (int i = 0; i < components.length; i++)
                {
                
-                  output += " " + each.getAccessor().invoke(this);
+                  var each = components[i];
+               
+                  output += (i == 0 ? "" : " ") + each.getAccessor().invoke(this);
                
                }
             
@@ -142,6 +146,7 @@ public class RulesEngine
       NOT_YET_IMPLEMENTED,
       CORRECT,
       POSSIBLY,
+      NEED_MORE_INFO,
       INCORRECT,
       UNKNOWN_IDENTIFIER,
       UNKNOWN_TYPE,
@@ -650,15 +655,20 @@ public class RulesEngine
          () ->
          {
          
-            final JPanel identifiersPanel = new JPanel(new BorderLayout());
-            // 
-         //    final JButton deleteAllButton = new JButton("Delete All");
-         //    deleteAllButton.addActionListener(event -> identifiersModel.clear());
-         //    
-            identifiersPanel.add(new JLabel("IDENTIFIERS"), BorderLayout.PAGE_START);
-            identifiersPanel.add(new JScrollPane(identifiersList), BorderLayout.CENTER);
-            //identifiersPanel.add(deleteAllButton, BorderLayout.PAGE_END);
+            identifiersList.setBackground(Color.DARK_GRAY);
+            identifiersList.setForeground(Color.WHITE);
          
+            final JLabel identifiersLabel = new JLabel("IDENTIFIERS");
+            identifiersLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            identifiersLabel.setBackground(Color.GRAY);
+            identifiersLabel.setForeground(Color.WHITE);
+            identifiersLabel.setOpaque(true);
+            
+            final JPanel identifiersPanel = new JPanel(new BorderLayout());
+            
+            identifiersPanel.add(identifiersLabel, BorderLayout.PAGE_START);
+            identifiersPanel.add(new JScrollPane(identifiersList), BorderLayout.CENTER);
+            
             return identifiersPanel;
          
          };
@@ -667,9 +677,18 @@ public class RulesEngine
          () ->
          {
          
+            typesList.setBackground(Color.DARK_GRAY);
+            typesList.setForeground(Color.WHITE);
+            
+            final JLabel typesLabel = new JLabel("TYPES");
+            typesLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            typesLabel.setBackground(Color.GRAY);
+            typesLabel.setForeground(Color.WHITE);
+            typesLabel.setOpaque(true);
+            
             final JPanel typesPanel = new JPanel(new BorderLayout());
             
-            typesPanel.add(new JLabel("TYPES"), BorderLayout.PAGE_START);
+            typesPanel.add(typesLabel, BorderLayout.PAGE_START);
             typesPanel.add(new JScrollPane(typesList), BorderLayout.CENTER);
          
             return typesPanel;
@@ -679,6 +698,9 @@ public class RulesEngine
          final Supplier<JPanel> ioPanel =
             () -> 
             {
+            
+               displayArea.setBackground(Color.DARK_GRAY);
+               displayArea.setForeground(Color.WHITE);
                
                final JPanel innerPanel = new JPanel(new BorderLayout());
                
@@ -883,7 +905,7 @@ public class RulesEngine
          
       }
       
-      return Response.POSSIBLY;
+      return Response.NEED_MORE_INFO;
    
    }
    

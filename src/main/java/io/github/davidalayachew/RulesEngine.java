@@ -16,6 +16,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -131,7 +133,7 @@ public class RulesEngine
             {
             
                case HAS    -> this.name();
-               case IS_A   -> this.name().replace("_", " ").replace(" A", "(?: A|)");
+               case IS_A   -> this.name().replace("_", " ").replace(" A", "(?: A(?:N|)|)");
             
             };
       
@@ -489,7 +491,7 @@ public class RulesEngine
                   // Starting Option 1---------------------------------------------------
                   + "IS"                              // not a group             IS
                   + " " + Identifier.regex            // group 1                 Identifier (ex. DAVID)
-                  + "(?: A|)"                         // not a capturing group   Optional A
+                  + "(?: A(?:N|)|)"                   // not a capturing group   Optional A or AN
                   + " " + Type.regex                  // group 2                 Type (ex. MAN)
                   + "(?:\\?|)"                        // not a capturing group   Optional question mark at the end of the sentence
       
@@ -566,6 +568,18 @@ public class RulesEngine
       final JScrollPane displayAreaScrollPane = new JScrollPane(displayArea);
       
       typingArea.setText("Enter your text here!");
+      typingArea.addMouseListener(
+         new MouseAdapter()
+         {
+         
+            public void mouseClicked(MouseEvent event)
+            {
+            
+               typingArea.selectAll();
+            
+            }
+         
+         });
       
       displayArea.setEditable(false);
       displayArea.setTabSize(4);
@@ -586,7 +600,7 @@ public class RulesEngine
                      case Type t -> new IdentifierType(List.of(), List.of(t));
                      case Identifier i -> new IdentifierType(List.of(i), List.of());
                      case IdentifierIsType iit ->
-                           new IdentifierType(List.of(iit.identifier()), List.of(iit.type()));
+                                 new IdentifierType(List.of(iit.identifier()), List.of(iit.type()));
                                     
                      case IdentifierHasQuantityType ihqt ->
                            new IdentifierType(List.of(ihqt.identifier()), List.of(ihqt.quantityType().type()));
@@ -650,7 +664,7 @@ public class RulesEngine
       
       final JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
       buttonPanel.add(clear);
-
+   
       final Supplier<JPanel> identifiers = 
          () ->
          {
@@ -694,8 +708,8 @@ public class RulesEngine
             return typesPanel;
          
          };
-
-         final Supplier<JPanel> ioPanel =
+   
+      final Supplier<JPanel> ioPanel =
             () -> 
             {
             
@@ -705,12 +719,12 @@ public class RulesEngine
                final JPanel innerPanel = new JPanel(new BorderLayout());
                
                innerPanel.setMinimumSize(new Dimension(50, 50));
-
-            innerPanel.add(typingArea, BorderLayout.PAGE_START);
-            innerPanel.add(displayAreaScrollPane, BorderLayout.CENTER);
-            innerPanel.add(buttonPanel, BorderLayout.PAGE_END);
             
-            return innerPanel;
+               innerPanel.add(typingArea, BorderLayout.PAGE_START);
+               innerPanel.add(displayAreaScrollPane, BorderLayout.CENTER);
+               innerPanel.add(buttonPanel, BorderLayout.PAGE_END);
+            
+               return innerPanel;
             
             };
    

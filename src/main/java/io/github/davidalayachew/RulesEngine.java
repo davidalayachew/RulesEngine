@@ -212,17 +212,17 @@ public class RulesEngine
                switch (godForgiveMe)
                {
                
-                  case Identifier i                         -> map.put(Identifier.regex, Identifier::new);
-                  case Type t                               -> map.put(Type.regex, Type::new);
-                  case Quantity q                           -> map.put(Quantity.regex, Quantity::new);
-                  case QuantityType qt                      -> map.put(QuantityType.regex, QuantityType::new);
-                  case IdentifierHasQuantityType ihqt       -> map.put(IdentifierHasQuantityType.regex, IdentifierHasQuantityType::new);
-                  case IdentifierIsType iit                 -> map.put(IdentifierIsType.regex, IdentifierIsType::new);
-                  case FrequencyType ft                     -> map.put(FrequencyType.regex, FrequencyType::new);
-                  case FrequencyTypeRelationship ftr        -> map.put(FrequencyTypeRelationship.regex, FrequencyTypeRelationship::new);
-                  case FrequencyTypeHasQuantityType fthqt   -> map.put(FrequencyTypeHasQuantityType.regex, FrequencyTypeHasQuantityType::new);
-                  case FrequencyTypeIsType ftit             -> map.put(FrequencyTypeIsType.regex, FrequencyTypeIsType::new);
-                  case IsIdentifierType iit                 -> map.put(IsIdentifierType.regex, IsIdentifierType::new);
+                                 case Identifier i                         -> map.put(Identifier.regex, Identifier::new);
+                                 case Type t                               -> map.put(Type.regex, Type::new);
+                                 case Quantity q                           -> map.put(Quantity.regex, Quantity::new);
+                                 case QuantityType qt                      -> map.put(QuantityType.regex, QuantityType::new);
+                                 case IdentifierHasQuantityType ihqt       -> map.put(IdentifierHasQuantityType.regex, IdentifierHasQuantityType::new);
+                                 case IdentifierIsType iit                 -> map.put(IdentifierIsType.regex, IdentifierIsType::new);
+                                 case FrequencyType ft                     -> map.put(FrequencyType.regex, FrequencyType::new);
+                                 case FrequencyTypeRelationship ftr        -> map.put(FrequencyTypeRelationship.regex, FrequencyTypeRelationship::new);
+                                 case FrequencyTypeHasQuantityType fthqt   -> map.put(FrequencyTypeHasQuantityType.regex, FrequencyTypeHasQuantityType::new);
+                                 case FrequencyTypeIsType ftit             -> map.put(FrequencyTypeIsType.regex, FrequencyTypeIsType::new);
+                                 case IsIdentifierType iit                 -> map.put(IsIdentifierType.regex, IsIdentifierType::new);
                
                }
             
@@ -597,31 +597,31 @@ public class RulesEngine
                   switch (potential.get())
                   {
                   
-                     case Type t -> new IdentifierType(List.of(), List.of(t));
-                     case Identifier i -> new IdentifierType(List.of(i), List.of());
-                     case IdentifierIsType iit ->
-                                 new IdentifierType(List.of(iit.identifier()), List.of(iit.type()));
-                                    
-                     case IdentifierHasQuantityType ihqt ->
-                           new IdentifierType(List.of(ihqt.identifier()), List.of(ihqt.quantityType().type()));
-                                    
-                     case Quantity q -> new IdentifierType(List.of(), List.of());
-                     case QuantityType qt -> new IdentifierType(List.of(), List.of(qt.type()));
-                     case FrequencyType ft -> new IdentifierType(List.of(), List.of(ft.type()));
-                     case FrequencyTypeHasQuantityType fthqt ->
-                           new IdentifierType(List.of(),
-                              List.of(
-                                 fthqt.frequencyType().type(),
-                                 fthqt.quantityType().type()));
-                                    
-                     case FrequencyTypeIsType ftit ->
-                           new IdentifierType(List.of(), List.of(ftit.frequencyType().type(), ftit.type()));
-                                    
-                     case FrequencyTypeRelationship ftr ->
-                           new IdentifierType(List.of(), List.of(ftr.frequencyType().type()));
-                                          
-                     case IsIdentifierType iit ->
-                           new IdentifierType(List.of(iit.identifier()), List.of(iit.type()));
+                                       case Type t -> new IdentifierType(List.of(), List.of(t));
+                                       case Identifier i -> new IdentifierType(List.of(i), List.of());
+                                       case IdentifierIsType iit ->
+                                                   new IdentifierType(List.of(iit.identifier()), List.of(iit.type()));
+                                                      
+                                       case IdentifierHasQuantityType ihqt ->
+                                             new IdentifierType(List.of(ihqt.identifier()), List.of(ihqt.quantityType().type()));
+                                                      
+                                       case Quantity q -> new IdentifierType(List.of(), List.of());
+                                       case QuantityType qt -> new IdentifierType(List.of(), List.of(qt.type()));
+                                       case FrequencyType ft -> new IdentifierType(List.of(), List.of(ft.type()));
+                                       case FrequencyTypeHasQuantityType fthqt ->
+                                             new IdentifierType(List.of(),
+                                                List.of(
+                                                   fthqt.frequencyType().type(),
+                                                   fthqt.quantityType().type()));
+                                                      
+                                       case FrequencyTypeIsType ftit ->
+                                             new IdentifierType(List.of(), List.of(ftit.frequencyType().type(), ftit.type()));
+                                                      
+                                       case FrequencyTypeRelationship ftr ->
+                                             new IdentifierType(List.of(), List.of(ftr.frequencyType().type()));
+                                                            
+                                       case IsIdentifierType iit ->
+                                             new IdentifierType(List.of(iit.identifier()), List.of(iit.type()));
                         
                   };
             
@@ -791,17 +791,17 @@ public class RulesEngine
       return switch (parseable)
                {
                
-                  case Type t                               -> Response.NOT_YET_IMPLEMENTED;//processType(t);
-                  case Quantity q                           -> Response.NOT_YET_IMPLEMENTED;
-                  case QuantityType qt                      -> Response.NOT_YET_IMPLEMENTED;
-                  case Identifier i                         -> Response.NOT_YET_IMPLEMENTED;
-                  case IdentifierHasQuantityType ihqt       -> processIdentifierHasQuantityType(ihqt);
-                  case IdentifierIsType iit                 -> processIdentifierIsType(iit);
-                  case FrequencyType ft                     -> Response.NOT_YET_IMPLEMENTED;
-                  case FrequencyTypeRelationship ftr        -> Response.NOT_YET_IMPLEMENTED;
-                  case FrequencyTypeHasQuantityType fthqt   -> processFrequencyTypeHasQuantityType(fthqt);
-                  case FrequencyTypeIsType ftit             -> processFrequencyTypeIsType(ftit);
-                  case IsIdentifierType iit                 -> processIsIdentifierType(iit);
+                           case Type t                               -> Response.NOT_YET_IMPLEMENTED;//processType(t);
+                           case Quantity q                           -> Response.NOT_YET_IMPLEMENTED;
+                           case QuantityType qt                      -> Response.NOT_YET_IMPLEMENTED;
+                           case Identifier i                         -> Response.NOT_YET_IMPLEMENTED;
+                           case IdentifierHasQuantityType ihqt       -> processIdentifierHasQuantityType(ihqt);
+                           case IdentifierIsType iit                 -> processIdentifierIsType(iit);
+                           case FrequencyType ft                     -> Response.NOT_YET_IMPLEMENTED;
+                           case FrequencyTypeRelationship ftr        -> Response.NOT_YET_IMPLEMENTED;
+                           case FrequencyTypeHasQuantityType fthqt   -> processFrequencyTypeHasQuantityType(fthqt);
+                           case FrequencyTypeIsType ftit             -> processFrequencyTypeIsType(ftit);
+                           case IsIdentifierType iit                 -> processIsIdentifierType(iit);
                
                };
          
@@ -839,25 +839,25 @@ public class RulesEngine
          
             final Set<Type> allHasTypeValues =
                Stream.of(
-                     flatMap(this.hasInstances, Map::values, quantityType -> quantityType.type()),
-                        flatMap(this.hasRules, Map::values, quantityType -> quantityType.type())
-                     )
-                     .flatMap(Set::stream)
-                     .collect(Collectors.toUnmodifiableSet())
-                     ;
+                  flatMap(this.hasInstances, Map::values, quantityType -> quantityType.type()),
+                     flatMap(this.hasRules, Map::values, quantityType -> quantityType.type())
+                  )
+                  .flatMap(Set::stream)
+                  .collect(Collectors.toUnmodifiableSet())
+                  ;
          
             if (!allHasTypeValues.contains(givenType))
             {
             
                final Set<Type> allTypeKeys = 
                   Stream.of(
-                     this.hasRules.keySet(),
-                     this.isRules.keySet()
-                  )
-                  .flatMap(Set::stream)
-                  .map(FrequencyType::type)
-                  .collect(Collectors.toUnmodifiableSet())
-                  ;
+                        this.hasRules.keySet(),
+                        this.isRules.keySet()
+                     )
+                     .flatMap(Set::stream)
+                     .map(FrequencyType::type)
+                     .collect(Collectors.toUnmodifiableSet())
+                     ;
                   
                if (!allTypeKeys.contains(givenType))
                {
@@ -885,7 +885,7 @@ public class RulesEngine
       {
          
          final Map<FrequencyType, Set<Type>> allIsRules = findAllIsRules();
-            
+      
          for (Type eachPossibleType : possibleTypes)
          {
             
@@ -1046,7 +1046,7 @@ public class RulesEngine
                if (!childTypes.contains(eachType))
                {
                
-                  childTypes.addAll(findAllChildTypesOf(eachType));
+                  childTypes.addAll(findAllChildTypesOf(eachType)); // found a bug on this line -- if I make a circular reference, I get a StackOverflowError
                   childTypes.add(eachType);
                
                }

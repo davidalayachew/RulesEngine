@@ -16,125 +16,127 @@
   <Frame>
     <Bounds>
       <AutoSize>false</AutoSize>
-      <X>30</X>
-      <Y>320</Y>
-      <W>668</W>
-      <H>48</H>
+      <X>10</X>
+      <Y>60</Y>
+      <W>388</W>
+      <H>108</H>
     </Bounds>
     <PanelSize>
-      <Key>jgrasp_viewers._X_PresentationToStringView0</Key>
-      <Order>4</Order>
-      <W>674</W>
-      <H>82</H>
-    </PanelSize>
-    <PanelSize>
       <Key>jgrasp_viewers.java__util__Map_ToStringView0</Key>
-      <Order>3</Order>
-      <W>484</W>
-      <H>82</H>
-    </PanelSize>
-    <Viewer>
-      <ScopeID>0</ScopeID>
-      <Expression>this.isInstances</Expression>
-      <ViewerClass>jgrasp_viewers._X_PresentationToStringView</ViewerClass>
-    </Viewer>
-  </Frame>
-  <Frame>
-    <Bounds>
-      <AutoSize>false</AutoSize>
-      <X>30</X>
-      <Y>210</Y>
-      <W>768</W>
-      <H>98</H>
-    </Bounds>
-    <PanelSize>
-      <Key>jgrasp_viewers._X_PresentationToStringView0</Key>
       <Order>4</Order>
-      <W>774</W>
-      <H>132</H>
+      <W>394</W>
+      <H>142</H>
     </PanelSize>
     <PanelSize>
-      <Key>jgrasp_viewers.java__util__Map_ToStringView0</Key>
+      <Key>jgrasp_viewers.java__lang__Object_FormattedToStringView0</Key>
       <Order>3</Order>
-      <W>474</W>
+      <W>394</W>
       <H>80</H>
     </PanelSize>
-    <Viewer>
-      <ScopeID>0</ScopeID>
-      <Expression>this.hasInstances</Expression>
-      <ViewerClass>jgrasp_viewers._X_PresentationToStringView</ViewerClass>
-    </Viewer>
-  </Frame>
-  <Frame>
-    <Bounds>
-      <AutoSize>false</AutoSize>
-      <X>30</X>
-      <Y>150</Y>
-      <W>1148</W>
-      <H>38</H>
-    </Bounds>
     <PanelSize>
       <Key>jgrasp_viewers._X_PresentationToStringView0</Key>
-      <Order>4</Order>
-      <W>1154</W>
+      <Order>2</Order>
+      <W>244</W>
       <H>72</H>
-    </PanelSize>
-    <PanelSize>
-      <Key>jgrasp_viewers.java__util__Map_ToStringView0</Key>
-      <Order>3</Order>
-      <W>704</W>
-      <H>80</H>
     </PanelSize>
     <Viewer>
       <ScopeID>0</ScopeID>
       <Expression>this.hasRules</Expression>
-      <ViewerClass>jgrasp_viewers._X_PresentationToStringView</ViewerClass>
+      <ViewerClass>jgrasp_viewers.java__util__Map_ToStringView</ViewerClass>
     </Viewer>
   </Frame>
   <Frame>
     <Bounds>
       <AutoSize>false</AutoSize>
-      <X>290</X>
-      <Y>70</Y>
-      <W>908</W>
-      <H>51</H>
+      <X>10</X>
+      <Y>460</Y>
+      <W>388</W>
+      <H>118</H>
     </Bounds>
     <PanelSize>
-      <Key>jgrasp_viewers._X_PresentationToStringView0</Key>
+      <Key>jgrasp_viewers.java__util__Map_ToStringView0</Key>
       <Order>4</Order>
-      <W>914</W>
+      <W>394</W>
+      <H>152</H>
+    </PanelSize>
+    <PanelSize>
+      <Key>jgrasp_viewers.java__lang__Object_FormattedToStringView0</Key>
+      <Order>3</Order>
+      <W>364</W>
+      <H>82</H>
+    </PanelSize>
+    <PanelSize>
+      <Key>jgrasp_viewers._X_PresentationToStringView0</Key>
+      <Order>2</Order>
+      <W>524</W>
       <H>85</H>
     </PanelSize>
     <Viewer>
       <ScopeID>0</ScopeID>
       <Expression>this.isRules</Expression>
-      <ViewerClass>jgrasp_viewers._X_PresentationToStringView</ViewerClass>
+      <ViewerClass>jgrasp_viewers.java__util__Map_ToStringView</ViewerClass>
     </Viewer>
   </Frame>
   <Frame>
     <Bounds>
-      <AutoSize>true</AutoSize>
-      <X>20</X>
-      <Y>40</Y>
-      <W>265</W>
-      <H>86</H>
+      <AutoSize>false</AutoSize>
+      <X>10</X>
+      <Y>320</Y>
+      <W>388</W>
+      <H>108</H>
     </Bounds>
     <PanelSize>
-      <Key>jgrasp_viewers._X_ElementView0</Key>
+      <Key>jgrasp_viewers.java__util__Map_ToStringView0</Key>
       <Order>4</Order>
-      <W>464</W>
-      <H>84</H>
+      <W>394</W>
+      <H>142</H>
+    </PanelSize>
+    <PanelSize>
+      <Key>jgrasp_viewers._X_PresentationToStringView0</Key>
+      <Order>3</Order>
+      <W>364</W>
+      <H>82</H>
     </PanelSize>
     <Viewer>
       <ScopeID>0</ScopeID>
-      <Expression>this.types</Expression>
-      <ViewerClass>jgrasp_viewers.java__util__Collection_ToStringView</ViewerClass>
+      <Expression>this.isInstances</Expression>
+      <ViewerClass>jgrasp_viewers.java__util__Map_ToStringView</ViewerClass>
+    </Viewer>
+  </Frame>
+  <Frame>
+    <Bounds>
+      <AutoSize>false</AutoSize>
+      <X>10</X>
+      <Y>190</Y>
+      <W>388</W>
+      <H>108</H>
+    </Bounds>
+    <PanelSize>
+      <Key>jgrasp_viewers.java__util__Map_ToStringView0</Key>
+      <Order>4</Order>
+      <W>394</W>
+      <H>142</H>
+    </PanelSize>
+    <PanelSize>
+      <Key>jgrasp_viewers._X_PresentationToStringView0</Key>
+      <Order>3</Order>
+      <W>414</W>
+      <H>132</H>
+    </PanelSize>
+    <Viewer>
+      <ScopeID>0</ScopeID>
+      <Expression>this.hasInstances</Expression>
+      <ViewerClass>jgrasp_viewers.java__util__Map_ToStringView</ViewerClass>
     </Viewer>
   </Frame>
   <Size>
-    <W>1225</W>
-    <H>540</H>
+    <W>415</W>
+    <H>600</H>
   </Size>
+  <ISize>
+    <W>421</W>
+    <H>400</H>
+  </ISize>
   <ESize>
     <W>1225</W>
     <H>540</H>

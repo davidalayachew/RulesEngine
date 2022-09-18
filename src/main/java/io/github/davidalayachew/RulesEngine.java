@@ -45,19 +45,19 @@ public class RulesEngine
 
    private sealed interface Parseable
          permits
-            Identifier, 
-            Type, 
-            IdentifierIsType, 
-            IdentifierHasQuantityType, 
-            Quantity, 
-            QuantityType, 
-            FrequencyType, 
-            FrequencyTypeHasQuantityType, 
-            FrequencyTypeIsType, 
+            Identifier,
+            Type,
+            IdentifierIsAType,
+            IdentifierHasQuantityType,
+            Quantity,
+            QuantityType,
+            FrequencyType,
+            FrequencyTypeHasQuantityType,
+            FrequencyTypeIsType,
             FrequencyTypeRelationship,
-            IsIdentifierType
+            IsIdentifierAType
    {}
-   
+
    private interface ToString
    {
    
@@ -73,7 +73,7 @@ public class RulesEngine
             {
             
                var components = this.getClass().getRecordComponents();
-               
+            
                for (int i = 0; i < components.length; i++)
                {
                
@@ -99,7 +99,7 @@ public class RulesEngine
       }
    
    }
-   
+
    private enum Frequency
    {
    
@@ -110,7 +110,7 @@ public class RulesEngine
    
       //turns [A, B, C] into (A|B|C)
       //useful in Java's Pattern class, when you want a pattern capturing group for an enum
-      
+   
       public static final String regex = convertToPatternGroup(values());
    }
 
@@ -123,9 +123,9 @@ public class RulesEngine
    
       //turns [A, B, C] into (A|B|C)
       //useful in Java's Pattern class, when you want a pattern capturing group for an enum
-      
+   
       public static final String regex = convertToPatternGroup(values());
-      
+   
       public String pattern()
       {
       
@@ -138,7 +138,7 @@ public class RulesEngine
             };
       
       }
-      
+   
    }
 
    private enum Response
@@ -166,7 +166,7 @@ public class RulesEngine
    
    }
 
-   private final class ClassParser
+   private static final class ClassParser
    {
    
       private ClassParser() {throw new UnsupportedOperationException();}
@@ -195,38 +195,36 @@ public class RulesEngine
                      case "Type"                         -> List.of("A");
                      case "Quantity", "QuantityType"     -> List.of("1", "A");
                      case "IdentifierHasQuantityType"    -> List.of("A", "1", "A");
-                     case "IdentifierIsType"             -> List.of("A", "A");
+                     case "IdentifierIsAType"            -> List.of("A", "A");
                      case "FrequencyType"                -> List.of("EVERY", "A", "A");
                      case "FrequencyTypeRelationship"    -> List.of("EVERY", "A", "IS A");
                      case "FrequencyTypeHasQuantityType" -> List.of("EVERY", "A", "1", "A");
                      case "FrequencyTypeIsType"          -> List.of("EVERY", "A", "A");
-                     case "IsIdentifierType"             -> List.of("EVERY", "A");
+                     case "IsIdentifierAType"            -> List.of("EVERY", "A");
                      default                             -> throw new IllegalArgumentException("Forgot to update this method!");
                   
                   };
             
                Constructor<? extends Parseable> constructor = temp.getConstructor(List.class);
                Parseable godForgiveMe = constructor.newInstance(strings);
-               
-               
+            
+            
                switch (godForgiveMe)
                {
                
-                                 case Identifier i                         -> map.put(Identifier.regex, Identifier::new);
-                                 case Type t                               -> map.put(Type.regex, Type::new);
-                                 case Quantity q                           -> map.put(Quantity.regex, Quantity::new);
-                                 case QuantityType qt                      -> map.put(QuantityType.regex, QuantityType::new);
-                                 case IdentifierHasQuantityType ihqt       -> map.put(IdentifierHasQuantityType.regex, IdentifierHasQuantityType::new);
-                                 case IdentifierIsType iit                 -> map.put(IdentifierIsType.regex, IdentifierIsType::new);
-                                 case FrequencyType ft                     -> map.put(FrequencyType.regex, FrequencyType::new);
-                                 case FrequencyTypeRelationship ftr        -> map.put(FrequencyTypeRelationship.regex, FrequencyTypeRelationship::new);
-                                 case FrequencyTypeHasQuantityType fthqt   -> map.put(FrequencyTypeHasQuantityType.regex, FrequencyTypeHasQuantityType::new);
-                                 case FrequencyTypeIsType ftit             -> map.put(FrequencyTypeIsType.regex, FrequencyTypeIsType::new);
-                                 case IsIdentifierType iit                 -> map.put(IsIdentifierType.regex, IsIdentifierType::new);
+                  case Identifier i                         -> map.put(Identifier.regex, Identifier::new);
+                  case Type t                               -> map.put(Type.regex, Type::new);
+                  case Quantity q                           -> map.put(Quantity.regex, Quantity::new);
+                  case QuantityType qt                      -> map.put(QuantityType.regex, QuantityType::new);
+                  case IdentifierHasQuantityType ihqt       -> map.put(IdentifierHasQuantityType.regex, IdentifierHasQuantityType::new);
+                  case IdentifierIsAType iiat               -> map.put(IdentifierIsAType.regex, IdentifierIsAType::new);
+                  case FrequencyType ft                     -> map.put(FrequencyType.regex, FrequencyType::new);
+                  case FrequencyTypeRelationship ftr        -> map.put(FrequencyTypeRelationship.regex, FrequencyTypeRelationship::new);
+                  case FrequencyTypeHasQuantityType fthqt   -> map.put(FrequencyTypeHasQuantityType.regex, FrequencyTypeHasQuantityType::new);
+                  case FrequencyTypeIsType ftit             -> map.put(FrequencyTypeIsType.regex, FrequencyTypeIsType::new);
+                  case IsIdentifierAType iiat               -> map.put(IsIdentifierAType.regex, IsIdentifierAType::new);
                
                }
-            
-               // throw new UnsupportedOperationException("Comment me out because jGRASP!");
             
             }
             
@@ -256,7 +254,7 @@ public class RulesEngine
             if (match.matches())
             {
             
-               return Optional.of(each.getValue().apply(fetchGroups(match)));
+               return Optional.of(each.getValue().apply(RulesEngine.fetchGroups(match)));
             
             }
          
@@ -265,22 +263,22 @@ public class RulesEngine
          return Optional.empty();
       
       }
-      
-      private static final List<String> fetchGroups(Matcher match)
+   
+   }
+
+   private static final List<String> fetchGroups(Matcher match)
+   {
+   
+      List<String> groups = new ArrayList<>();
+   
+      for (int i = 1; i <= match.groupCount(); i++)
       {
       
-         List<String> groups = new ArrayList<>();
-      
-         for (int i = 1; i <= match.groupCount(); i++)
-         {
-         
-            groups.add(match.group(i));
-         
-         }
-         
-         return groups;
+         groups.add(match.group(i));
       
       }
+   
+      return groups;
    
    }
 
@@ -289,16 +287,16 @@ public class RulesEngine
    
       public static final Pattern regex = Pattern.compile("([a-zA-Z]+[a-zA-Z0-9]*)");
    
-      public Type(List<String> string)
+      public Type(List<String> strings)
       {
       
-         this(string.get(0));
+         this(strings.get(0));
       
       }
    
       public String toString() {
          return cleanString(); }
-    
+   
    }
 
    private record Identifier(String name)  implements Parseable, ToString
@@ -315,14 +313,14 @@ public class RulesEngine
    
       public String toString() {
          return cleanString(); }
-    
+   
    }
 
    private record Quantity(long count) implements Parseable, ToString
    {
    
       public static final Pattern regex = Pattern.compile("(A|\\d{1,7})");
-      
+   
       public Quantity(List<String> strings)
       {
       
@@ -332,7 +330,7 @@ public class RulesEngine
    
       public String toString() {
          return cleanString(); }
-    
+   
    }
 
    private record QuantityType(Quantity quantity, Type type) implements Parseable, ToString
@@ -355,7 +353,7 @@ public class RulesEngine
    
       public String toString() {
          return cleanString(); }
-    
+   
    }
 
    private record IdentifierHasQuantityType(Identifier identifier, QuantityType quantityType) implements Parseable, ToString
@@ -366,20 +364,20 @@ public class RulesEngine
                                                             + " " + Relationship.HAS.pattern()  //not a group because no (), so just a pattern
                                                             + " " + QuantityType.regex          //group 2 and 3
                                                             );
-      
+   
       public IdentifierHasQuantityType(List<String> strings)
       {
       
          this(new Identifier(strings.subList(0, 1)), new QuantityType(strings.subList(1, 3)));
       
       }
-      
+   
       public String toString() {
          return cleanString(); }
-    
+   
    }
 
-   private record IdentifierIsType(Identifier identifier, Type type) implements Parseable, ToString
+   private record IdentifierIsAType(Identifier identifier, Type type) implements Parseable, ToString
    {
    
       private static final Pattern regex = Pattern.compile(                                     //If pattern is surrounded by () then it's a group
@@ -387,17 +385,17 @@ public class RulesEngine
                                                             + " " + Relationship.IS_A.pattern() //not a group because no (), so just a pattern
                                                             + " " + Type.regex                  //group 2
                                                             );
-      
-      public IdentifierIsType(List<String> strings)
+   
+      public IdentifierIsAType(List<String> strings)
       {
       
          this(new Identifier(strings.subList(0, 1)), new Type(strings.subList(1, 2)));
       
       }
-      
+   
       public String toString() {
          return cleanString(); }
-    
+   
    }
 
    private record FrequencyType(Frequency frequency, Type type) implements Parseable, ToString
@@ -414,10 +412,10 @@ public class RulesEngine
          this(Frequency.valueOf(strings.get(0).replace(" ", "_")), new Type(strings.subList(1, 2)));
       
       }
-      
+   
       public String toString() {
          return cleanString(); }
-    
+   
    }
 
    private record FrequencyTypeRelationship(FrequencyType frequencyType, Relationship relationship) implements Parseable, ToString
@@ -427,17 +425,17 @@ public class RulesEngine
                                                             FrequencyType.regex           //group 1 and 2
                                                             + " " + Relationship.regex    //group 3
                                                             );
-      
+   
       public FrequencyTypeRelationship(List<String> strings)
       {
       
          this(new FrequencyType(strings.subList(0, 2)), Relationship.valueOf(strings.get(2).replace(" ", "_")));
       
       }
-      
+   
       public String toString() {
          return cleanString(); }
-    
+   
    }
 
    private record FrequencyTypeHasQuantityType(FrequencyType frequencyType, QuantityType quantityType) implements Parseable, ToString
@@ -448,17 +446,17 @@ public class RulesEngine
                                                             + " " + Relationship.HAS.pattern()  //not a group because no (), so just a pattern
                                                             + " " + QuantityType.regex          //group 3 and 4
                                                             );
-      
+   
       public FrequencyTypeHasQuantityType(List<String> strings)
       {
       
          this(new FrequencyType(strings.subList(0, 2)), new QuantityType(strings.subList(2, 4)));
       
       }
-    
+   
       public String toString() {
          return cleanString(); }
-    
+   
    }
 
    private record FrequencyTypeIsType(FrequencyType frequencyType, Type type) implements Parseable, ToString
@@ -469,20 +467,20 @@ public class RulesEngine
                                                             + " " + Relationship.IS_A.pattern() //not a group because no (), so just a pattern
                                                             + " " + Type.regex                  //group 3
                                                             );
-      
+   
       public FrequencyTypeIsType(List<String> strings)
       {
       
          this(new FrequencyType(strings.subList(0, 2)), new Type(strings.subList(2, 3)));
       
       }
-    
+   
       public String toString() {
          return cleanString(); }
-    
+   
    }
 
-   private record IsIdentifierType(Identifier identifier, Type type) implements Parseable, ToString
+   private record IsIdentifierAType(Identifier identifier, Type type) implements Parseable, ToString
    {
    
       private static final Pattern regex =   // Unfortunately, I don't (currently) see a way to make this easy or neat or clean
@@ -503,57 +501,57 @@ public class RulesEngine
                   + " " + Relationship.IS_A.pattern() // not a capturing group   (ex. IS A) --- A is optional
                   + " " + Type.regex                  // group 2                 Type (ex. MAN)
                   + "\\?"                             // not a group             REQUIRED question mark at the end of the sentence
-                     
+      
                                                       //                         the full example = DAVID IS A MAN? --- A is optional, BUT NOT ?
                   // Finished Option 2---------------------------------------------------
             + ")"                                     // End of non-capturing group
          );
-      
-      public IsIdentifierType(List<String> strings)
+   
+      public IsIdentifierAType(List<String> strings)
       {
       
          this(new Identifier(strings.subList(0, 1)), new Type(strings.subList(1, 2)));
       
       }
-      
+   
       public String toString() {
          return cleanString(); }
-    
+   
    }
-   
+
    //private record
-   
-   private final Map<Identifier, Set<QuantityType>> hasInstances = new HashMap<>();
-   private final Map<Identifier, Set<Type>> isInstances = new HashMap<>();
-   private final Map<FrequencyType, Set<QuantityType>> hasRules = new HashMap<>();
-   private final Map<FrequencyType, Set<Type>> isRules = new HashMap<>();
-   
+
+   private final Map<Identifier,    Set<Type>         >  isInstances    = new HashMap<>();
+   private final Map<FrequencyType, Set<Type>         >  isRules        = new HashMap<>();
+   private final Map<Identifier,    Set<QuantityType> >  hasInstances   = new HashMap<>();
+   private final Map<FrequencyType, Set<QuantityType> >  hasRules       = new HashMap<>();
+
    public RulesEngine()
    {
    
       SwingUtilities.invokeLater(() -> constructJFrame());
-      
+   
    }
 
    private void constructJFrame()
    {
    
       JFrame frame = new JFrame("Rules Engine");
-      
+   
       frame.setSize(600, 500);
       frame.setLocation(500, 200);
       frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-      
+   
       JPanel panel = new JPanel(new GridLayout());
-      
+   
       constructJPanel(panel);
-      
+   
       frame.add(panel);
-      
+   
       frame.setVisible(true);
    
    }
-   
+
    private void constructJPanel(final JPanel panel)
    {
    
@@ -566,7 +564,7 @@ public class RulesEngine
       final JTextField typingArea = new JTextField();
       final JTextArea displayArea = new JTextArea();
       final JScrollPane displayAreaScrollPane = new JScrollPane(displayArea);
-      
+   
       typingArea.setText("Enter your text here!");
       typingArea.addMouseListener(
          new MouseAdapter()
@@ -580,16 +578,16 @@ public class RulesEngine
             }
          
          });
-      
+   
       displayArea.setEditable(false);
       displayArea.setTabSize(4);
-      
+   
       record IdentifierType(List<Identifier> identifiers, List<Type> types) {}
-      
+   
       final Consumer<Optional<? extends Parseable>> populateLists =
          potential ->
          {
-            
+         
             if (potential.isPresent())
             {
             
@@ -597,75 +595,77 @@ public class RulesEngine
                   switch (potential.get())
                   {
                   
-                                       case Type t -> new IdentifierType(List.of(), List.of(t));
-                                       case Identifier i -> new IdentifierType(List.of(i), List.of());
-                                       case IdentifierIsType iit ->
-                                                   new IdentifierType(List.of(iit.identifier()), List.of(iit.type()));
-                                                      
-                                       case IdentifierHasQuantityType ihqt ->
-                                             new IdentifierType(List.of(ihqt.identifier()), List.of(ihqt.quantityType().type()));
-                                                      
-                                       case Quantity q -> new IdentifierType(List.of(), List.of());
-                                       case QuantityType qt -> new IdentifierType(List.of(), List.of(qt.type()));
-                                       case FrequencyType ft -> new IdentifierType(List.of(), List.of(ft.type()));
-                                       case FrequencyTypeHasQuantityType fthqt ->
-                                             new IdentifierType(List.of(),
-                                                List.of(
-                                                   fthqt.frequencyType().type(),
-                                                   fthqt.quantityType().type()));
-                                                      
-                                       case FrequencyTypeIsType ftit ->
-                                             new IdentifierType(List.of(), List.of(ftit.frequencyType().type(), ftit.type()));
-                                                      
-                                       case FrequencyTypeRelationship ftr ->
-                                             new IdentifierType(List.of(), List.of(ftr.frequencyType().type()));
-                                                            
-                                       case IsIdentifierType iit ->
-                                             new IdentifierType(List.of(iit.identifier()), List.of(iit.type()));
-                        
+                     case Type t -> new IdentifierType(List.of(), List.of(t));
+                     case Identifier i -> new IdentifierType(List.of(i), List.of());
+                     case IdentifierIsAType iiat ->
+                                 new IdentifierType(List.of(iiat.identifier()), List.of(iiat.type()));
+                  
+                     case IdentifierHasQuantityType ihqt ->
+                           new IdentifierType(List.of(ihqt.identifier()), List.of(ihqt.quantityType().type()));
+                  
+                     case Quantity q -> new IdentifierType(List.of(), List.of());
+                     case QuantityType qt -> new IdentifierType(List.of(), List.of(qt.type()));
+                     case FrequencyType ft -> new IdentifierType(List.of(), List.of(ft.type()));
+                     case FrequencyTypeHasQuantityType fthqt ->
+                           new IdentifierType(List.of(),
+                              List.of(
+                                 fthqt.frequencyType().type(),
+                                 fthqt.quantityType().type()));
+                  
+                     case FrequencyTypeIsType ftit ->
+                           new IdentifierType(List.of(), List.of(ftit.frequencyType().type(), ftit.type()));
+                  
+                     case FrequencyTypeRelationship ftr ->
+                           new IdentifierType(List.of(), List.of(ftr.frequencyType().type()));
+                  
+                     case IsIdentifierAType iiat ->
+                           //I would like to add these to the list, but that would be misleading
+                           //new IdentifierType(List.of(iiat.identifier()), List.of(iiat.type()));
+                           new IdentifierType(List.of(), List.of());
+                  
                   };
             
                for (Identifier each : identifierType.identifiers())
                {
-                  
+               
                   if (!identifiersModel.contains(each))
                   {
-                     
+                  
                      identifiersModel.addElement(each);
                   
                   }
-                  
+               
                }
             
                for (Type each : identifierType.types())
                {
-                  
+               
                   if (!typesModel.contains(each))
                   {
-                     
+                  
                      typesModel.addElement(each);
                   
                   }
-                  
+               
                }
             
             }
-            
+         
             panel.revalidate();
          
          };
-      
+   
       typingArea.addActionListener(
             event -> populateLists.accept(processText(typingArea, "", displayArea, typingArea.getText()))
          );
    
       final JButton clear = new JButton("Clear Logs");
       clear.addActionListener(event -> setText(typingArea, "", displayArea, ""));
-      
+   
       final JPanel buttonPanel = new JPanel(new GridLayout(1, 0));
       buttonPanel.add(clear);
    
-      final Supplier<JPanel> identifiers = 
+      final Supplier<JPanel> identifiers =
          () ->
          {
          
@@ -677,31 +677,31 @@ public class RulesEngine
             identifiersLabel.setBackground(Color.GRAY);
             identifiersLabel.setForeground(Color.WHITE);
             identifiersLabel.setOpaque(true);
-            
+         
             final JPanel identifiersPanel = new JPanel(new BorderLayout());
-            
+         
             identifiersPanel.add(identifiersLabel, BorderLayout.PAGE_START);
             identifiersPanel.add(new JScrollPane(identifiersList), BorderLayout.CENTER);
-            
+         
             return identifiersPanel;
          
          };
    
-      final Supplier<JPanel> types = 
+      final Supplier<JPanel> types =
          () ->
          {
          
             typesList.setBackground(Color.DARK_GRAY);
             typesList.setForeground(Color.WHITE);
-            
+         
             final JLabel typesLabel = new JLabel("TYPES");
             typesLabel.setHorizontalAlignment(SwingConstants.CENTER);
             typesLabel.setBackground(Color.GRAY);
             typesLabel.setForeground(Color.WHITE);
             typesLabel.setOpaque(true);
-            
+         
             final JPanel typesPanel = new JPanel(new BorderLayout());
-            
+         
             typesPanel.add(typesLabel, BorderLayout.PAGE_START);
             typesPanel.add(new JScrollPane(typesList), BorderLayout.CENTER);
          
@@ -710,14 +710,14 @@ public class RulesEngine
          };
    
       final Supplier<JPanel> ioPanel =
-            () -> 
+            () ->
             {
             
                displayArea.setBackground(Color.DARK_GRAY);
                displayArea.setForeground(Color.WHITE);
-               
+            
                final JPanel innerPanel = new JPanel(new BorderLayout());
-               
+            
                innerPanel.setMinimumSize(new Dimension(50, 50));
             
                innerPanel.add(typingArea, BorderLayout.PAGE_START);
@@ -733,29 +733,29 @@ public class RulesEngine
       panel.add(types.get());
    
    }
-   
+
    private void setText(JTextField typingArea, String newTypingAreaText, JTextArea displayArea, String newDisplayAreaText)
    {
    
       typingArea.setText(newTypingAreaText);
       displayArea.setText(newDisplayAreaText);
       typingArea.requestFocusInWindow();
-      
+   
       displayArea.setCaretPosition(0);
       //displayArea.setCaretPosition(displayArea.getDocument().getLength());
    
    }
-   
+
    private Optional<? extends Parseable> processText(JTextField typingArea, String newTypingAreaText, JTextArea displayArea, String newDisplayAreaText)
    {
    
       Optional<? extends Parseable> parseable = convertToParseable(newDisplayAreaText);
-      
+   
       if (parseable.isPresent())
       {
       
          String response = processParseable(parseable.orElseThrow()).toString();
-         
+      
          newDisplayAreaText += "\n\t" + response;
       
       }
@@ -769,18 +769,18 @@ public class RulesEngine
    
       newDisplayAreaText += "\n" + displayArea.getText();
       setText(typingArea, newTypingAreaText, displayArea, newDisplayAreaText);
-      
-      return parseable;
-         
-   }
    
+      return parseable;
+   
+   }
+
    private Optional<? extends Parseable> convertToParseable(final String input)
    {
    
       final String text = input.trim().toUpperCase().replaceAll("\s+", " ");
-      
+   
       return ClassParser.parse(text);
-      
+   
    }
 
    private Response processParseable(Parseable parseable)
@@ -790,27 +790,24 @@ public class RulesEngine
    
       return switch (parseable)
                {
-               
-                           case Type t                               -> Response.NOT_YET_IMPLEMENTED;//processType(t);
-                           case Quantity q                           -> Response.NOT_YET_IMPLEMENTED;
-                           case QuantityType qt                      -> Response.NOT_YET_IMPLEMENTED;
-                           case Identifier i                         -> Response.NOT_YET_IMPLEMENTED;
-                           case IdentifierHasQuantityType ihqt       -> processIdentifierHasQuantityType(ihqt);
-                           case IdentifierIsType iit                 -> processIdentifierIsType(iit);
-                           case FrequencyType ft                     -> Response.NOT_YET_IMPLEMENTED;
-                           case FrequencyTypeRelationship ftr        -> Response.NOT_YET_IMPLEMENTED;
-                           case FrequencyTypeHasQuantityType fthqt   -> processFrequencyTypeHasQuantityType(fthqt);
-                           case FrequencyTypeIsType ftit             -> processFrequencyTypeIsType(ftit);
-                           case IsIdentifierType iit                 -> processIsIdentifierType(iit);
-               
-               };
          
-      //throw new UnsupportedOperationException("Comment me out because jGRASP!");
-   
+                  case Type t                               -> Response.NOT_YET_IMPLEMENTED;//processType(t);
+                  case Quantity q                           -> Response.NOT_YET_IMPLEMENTED;
+                  case QuantityType qt                      -> Response.NOT_YET_IMPLEMENTED;
+                  case Identifier i                         -> Response.NOT_YET_IMPLEMENTED;
+                  case IdentifierHasQuantityType ihqt       -> processIdentifierHasQuantityType(ihqt);
+                  case IdentifierIsAType iiat               -> processIdentifierIsAType(iiat);
+                  case FrequencyType ft                     -> Response.NOT_YET_IMPLEMENTED;
+                  case FrequencyTypeRelationship ftr        -> Response.NOT_YET_IMPLEMENTED;
+                  case FrequencyTypeHasQuantityType fthqt   -> processFrequencyTypeHasQuantityType(fthqt);
+                  case FrequencyTypeIsType ftit             -> processFrequencyTypeIsType(ftit);
+                  case IsIdentifierAType iiat               -> processIsIdentifierAType(iiat);
+         
+               };
    
    }
-   
-   private Response processIsIdentifierType(final IsIdentifierType isQuery)
+
+   private Response processIsIdentifierAType(final IsIdentifierAType isQuery)
    {
    
       final Identifier givenIdentifier = isQuery.identifier();
@@ -839,7 +836,7 @@ public class RulesEngine
          
             final Set<Type> allHasTypeValues =
                Stream.of(
-                  flatMap(this.hasInstances, Map::values, quantityType -> quantityType.type()),
+                     flatMap(this.hasInstances, Map::values, quantityType -> quantityType.type()),
                      flatMap(this.hasRules, Map::values, quantityType -> quantityType.type())
                   )
                   .flatMap(Set::stream)
@@ -849,7 +846,7 @@ public class RulesEngine
             if (!allHasTypeValues.contains(givenType))
             {
             
-               final Set<Type> allTypeKeys = 
+               final Set<Type> allTypeKeys =
                   Stream.of(
                         this.hasRules.keySet(),
                         this.isRules.keySet()
@@ -858,7 +855,7 @@ public class RulesEngine
                      .map(FrequencyType::type)
                      .collect(Collectors.toUnmodifiableSet())
                      ;
-                  
+            
                if (!allTypeKeys.contains(givenType))
                {
                
@@ -871,33 +868,33 @@ public class RulesEngine
          }
       
       }
-      
+   
       final Set<Type> possibleTypes = this.isInstances.get(givenIdentifier);
-         
+   
       if (possibleTypes.contains(givenType))
       {
-         
+      
          return Response.CORRECT;
-         
+      
       }
-         
+      
       else
       {
-         
+      
          final Map<FrequencyType, Set<Type>> allIsRules = findAllIsRules();
       
          for (Type eachPossibleType : possibleTypes)
          {
-            
+         
             final FrequencyType everyX = new FrequencyType(Frequency.EVERY, eachPossibleType);
             final FrequencyType nonePossibleX = new FrequencyType(Frequency.NOT_A_SINGLE, eachPossibleType);
             final FrequencyType noneGivenX = new FrequencyType(Frequency.NOT_A_SINGLE, givenType);
-               
+         
             if (allIsRules.containsKey(everyX) && allIsRules.get(everyX).contains(givenType))
             {
-               
+            
                return Response.CORRECT;
-               
+            
             }
             
             else if (allIsRules.containsKey(nonePossibleX) && allIsRules.get(nonePossibleX).contains(givenType))
@@ -913,16 +910,16 @@ public class RulesEngine
                return Response.INCORRECT;
             
             }
-            
-            
-         }
          
-      }
+         
+         }
       
+      }
+   
       return Response.NEED_MORE_INFO;
    
    }
-   
+
    private Response processFrequencyTypeHasQuantityType(FrequencyTypeHasQuantityType hasRule)
    {
    
@@ -930,9 +927,9 @@ public class RulesEngine
       {
       
          final FrequencyType givenFrequencyType = hasRule.frequencyType();
-         
+      
          final Map<Identifier, Set<QuantityType>> allHasInstances = findAllHasInstances();
-         
+      
          final Map<FrequencyType, Set<QuantityType>> allHasRules = findAllHasRules();
       
       }
@@ -942,7 +939,7 @@ public class RulesEngine
          new HashSet<>(Arrays.asList(hasRule.quantityType())),
          RulesEngine::merge
          );
-         
+   
       return Response.OK;
    
    }
@@ -964,9 +961,9 @@ public class RulesEngine
    {
    
       Set<QuantityType> quantityTypes = new HashSet<>(Arrays.asList(hasInstance.quantityType()));
-      
+   
       FrequencyType everyX = new FrequencyType(Frequency.EVERY, hasInstance.quantityType().type());
-      
+   
       if (this.hasRules.containsKey(everyX))
       {
       
@@ -984,11 +981,11 @@ public class RulesEngine
    
    }
 
-   private Response processIdentifierIsType(IdentifierIsType isInstance)
+   private Response processIdentifierIsAType(IdentifierIsAType isInstance)
    {
    
       final Set<Type> types = new HashSet<>(Arrays.asList(isInstance.type()));
-      
+   
       final FrequencyType everyX = new FrequencyType(Frequency.EVERY, isInstance.type());
    
       this.isInstances.merge(
@@ -1001,72 +998,12 @@ public class RulesEngine
    
    }
 
-   private Map<FrequencyType, Set<Type>> findAllIsRules()
-   {
-   
-      Map<FrequencyType, Set<Type>> allIsRules = copyOf(this.isRules);
-   
-      for (Map.Entry<FrequencyType, Set<Type>> eachEntry : this.isRules.entrySet())
-      {
-      
-         if (Frequency.EVERY.equals(eachEntry.getKey().frequency()))
-         {
-         
-            final Set<Type> types = findAllChildTypesOf(eachEntry.getKey().type());
-            allIsRules.merge(
-                  eachEntry.getKey(), 
-                  types, 
-                  RulesEngine::merge
-               );
-         
-         }
-      
-      }
-      
-      return allIsRules;
-   
-   }
-   
-   private Set<Type> findAllChildTypesOf(Type type)
-   {
-   
-      Set<Type> childTypes = new HashSet<>();
-   
-      for (Map.Entry<FrequencyType, Set<Type>> eachEntry : this.isRules.entrySet())
-      {
-      
-         FrequencyType everyX = new FrequencyType(Frequency.EVERY, type);
-      
-         if (eachEntry.getKey().equals(everyX))
-         {
-         
-            for (Type eachType : eachEntry.getValue())
-            {
-            
-               if (!childTypes.contains(eachType))
-               {
-               
-                  childTypes.addAll(findAllChildTypesOf(eachType)); // found a bug on this line -- if I make a circular reference, I get a StackOverflowError
-                  childTypes.add(eachType);
-               
-               }
-            
-            }
-         
-         }
-      
-      }
-      
-      return childTypes;
-   
-   }
-
    private Map<Identifier, Set<Type>> findAllIsInstances()
    {
    
       Map<Identifier, Set<Type>> allIsInstances = copyOf(this.isInstances);
       Map<FrequencyType, Set<Type>> allIsRules = findAllIsRules();
-      
+   
       for (Map.Entry<Identifier, Set<Type>> eachIsInstance : this.isInstances.entrySet())
       {
       
@@ -1092,7 +1029,7 @@ public class RulesEngine
          }
       
       }
-      
+   
       return allIsInstances;
    
    }
@@ -1102,7 +1039,7 @@ public class RulesEngine
    
       Map<FrequencyType, Set<QuantityType>> allHasRules = copyOf(this.hasRules);
       Map<FrequencyType, Set<Type>> allIsRules = this.findAllIsRules();
-      
+   
       for (Map.Entry<FrequencyType, Set<QuantityType>> eachHasRule : this.hasRules.entrySet())
       {
       
@@ -1133,7 +1070,7 @@ public class RulesEngine
       {
       
          FrequencyType everyX = new FrequencyType(Frequency.EVERY, quantityType.type());
-         
+      
          if (eachEntry.getKey().equals(everyX))
          {
          
@@ -1159,7 +1096,7 @@ public class RulesEngine
          }
       
       }
-      
+   
       return ownedTypes;
    
    }
@@ -1168,7 +1105,7 @@ public class RulesEngine
    {
    
       Map<Identifier, Set<QuantityType>> allHasInstances = this.hasInstances;
-      
+   
       for (Map.Entry<Identifier, Set<QuantityType>> eachEntry : this.hasInstances.entrySet())
       {
       
@@ -1182,14 +1119,14 @@ public class RulesEngine
 
    private static <E> String convertToPatternGroup(E[] values)
    {
-      
+   
       return Arrays.toString(values)
                   .replace('[', '(')
                   .replace(']', ')')
                   .replace('_', ' ')
                   .replaceAll(", ", "|")
                   ;
-      
+   
    }
 
    private static <T extends Parseable> Optional<T> parse(Matcher matcher, Class<T> clazz)
@@ -1222,27 +1159,27 @@ public class RulesEngine
          }
       
       }
-      
+   
       throw new IllegalStateException();
    
    }
-   
+
    private static <K, V> Map<K, Set<V>> copyOf(Map<K, Set<V>> oldMap)
    {
    
       Map<K, Set<V>> newMap = new HashMap<>();
-      
+   
       for (Map.Entry<K, Set<V>> eachEntry : oldMap.entrySet())
       {
       
          newMap.put(eachEntry.getKey(), new HashSet<>(eachEntry.getValue()));
       
       }
-      
+   
       return newMap;
    
    }
-   
+
    private static <T> Set<T> merge(Set<T> oldSet, Set<T> newSet)
    {
    
@@ -1254,7 +1191,7 @@ public class RulesEngine
    private static <K, V, O, A> Set<V> flatMap(Map<K, Set<O>> map, Function<Map<K, Set<O>>, Collection<Set<O>>> mapPortion, Function<O, V> converter)
    {
    
-      return 
+      return
          mapPortion.apply(map).stream()
             .flatMap(Set::stream)
             .map(converter::apply)

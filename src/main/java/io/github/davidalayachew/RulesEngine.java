@@ -788,159 +788,37 @@ public class RulesEngine
    
       System.out.println(parseable);
    
-      return switch (parseable)
-               {
+      return
+         switch (parseable)
+         {
          
-                  case Type t                               -> Response.NOT_YET_IMPLEMENTED;//processType(t);
-                  case Quantity q                           -> Response.NOT_YET_IMPLEMENTED;
-                  case QuantityType qt                      -> Response.NOT_YET_IMPLEMENTED;
-                  case Identifier i                         -> Response.NOT_YET_IMPLEMENTED;
-                  case IdentifierHasQuantityType ihqt       -> processIdentifierHasQuantityType(ihqt);
-                  case IdentifierIsAType iiat               -> processIdentifierIsAType(iiat);
-                  case FrequencyType ft                     -> Response.NOT_YET_IMPLEMENTED;
-                  case FrequencyTypeRelationship ftr        -> Response.NOT_YET_IMPLEMENTED;
-                  case FrequencyTypeHasQuantityType fthqt   -> processFrequencyTypeHasQuantityType(fthqt);
-                  case FrequencyTypeIsType ftit             -> processFrequencyTypeIsType(ftit);
-                  case IsIdentifierAType iiat               -> processIsIdentifierAType(iiat);
+            case Type t                               -> Response.NOT_YET_IMPLEMENTED;//processType(t);
+            case Quantity q                           -> Response.NOT_YET_IMPLEMENTED;
+            case QuantityType qt                      -> Response.NOT_YET_IMPLEMENTED;
+            case Identifier i                         -> Response.NOT_YET_IMPLEMENTED;
+            case IdentifierHasQuantityType ihqt       -> processIdentifierHasQuantityType(ihqt);
+            case IdentifierIsAType iiat               -> processIdentifierIsAType(iiat);
+            case FrequencyType ft                     -> Response.NOT_YET_IMPLEMENTED;
+            case FrequencyTypeRelationship ftr        -> Response.NOT_YET_IMPLEMENTED;
+            case FrequencyTypeHasQuantityType fthqt   -> processFrequencyTypeHasQuantityType(fthqt);
+            case FrequencyTypeIsType ftit             -> processFrequencyTypeIsType(ftit);
+            case IsIdentifierAType iiat               -> processIsIdentifierAType(iiat);
          
-               };
+         };
    
    }
 
    private Response processIsIdentifierAType(final IsIdentifierAType isQuery)
    {
    
-      final Identifier givenIdentifier = isQuery.identifier();
-      final Type givenType = isQuery.type();
-   
-      if (!this.isInstances.containsKey(givenIdentifier))
-      {
-      
-         return Response.UNKNOWN_IDENTIFIER;
-      
-      }
-   
-      {
-      
-         final Set<Type> allIsTypeValues =
-            Stream.of(
-                  flatMap(this.isInstances, Map::values, Function.identity()),
-                  flatMap(this.isRules, Map::values, Function.identity())
-               )
-               .flatMap(Set::stream)
-               .collect(Collectors.toUnmodifiableSet())
-               ;
-      
-         if (!allIsTypeValues.contains(givenType))
-         {
-         
-            final Set<Type> allHasTypeValues =
-               Stream.of(
-                     flatMap(this.hasInstances, Map::values, quantityType -> quantityType.type()),
-                     flatMap(this.hasRules, Map::values, quantityType -> quantityType.type())
-                  )
-                  .flatMap(Set::stream)
-                  .collect(Collectors.toUnmodifiableSet())
-                  ;
-         
-            if (!allHasTypeValues.contains(givenType))
-            {
-            
-               final Set<Type> allTypeKeys =
-                  Stream.of(
-                        this.hasRules.keySet(),
-                        this.isRules.keySet()
-                     )
-                     .flatMap(Set::stream)
-                     .map(FrequencyType::type)
-                     .collect(Collectors.toUnmodifiableSet())
-                     ;
-            
-               if (!allTypeKeys.contains(givenType))
-               {
-               
-                  return Response.UNKNOWN_TYPE;
-               
-               }
-            
-            }
-         
-         }
-      
-      }
-   
-      final Set<Type> possibleTypes = this.isInstances.get(givenIdentifier);
-   
-      if (possibleTypes.contains(givenType))
-      {
-      
-         return Response.CORRECT;
-      
-      }
-      
-      else
-      {
-      
-         final Map<FrequencyType, Set<Type>> allIsRules = findAllIsRules();
-      
-         for (Type eachPossibleType : possibleTypes)
-         {
-         
-            final FrequencyType everyX = new FrequencyType(Frequency.EVERY, eachPossibleType);
-            final FrequencyType nonePossibleX = new FrequencyType(Frequency.NOT_A_SINGLE, eachPossibleType);
-            final FrequencyType noneGivenX = new FrequencyType(Frequency.NOT_A_SINGLE, givenType);
-         
-            if (allIsRules.containsKey(everyX) && allIsRules.get(everyX).contains(givenType))
-            {
-            
-               return Response.CORRECT;
-            
-            }
-            
-            else if (allIsRules.containsKey(nonePossibleX) && allIsRules.get(nonePossibleX).contains(givenType))
-            {
-            
-               return Response.INCORRECT;
-            
-            }
-            
-            else if (allIsRules.containsKey(noneGivenX) && allIsRules.get(noneGivenX).contains(eachPossibleType))
-            {
-            
-               return Response.INCORRECT;
-            
-            }
-         
-         
-         }
-      
-      }
-   
-      return Response.NEED_MORE_INFO;
+   return Response.NOT_YET_IMPLEMENTED;
    
    }
 
    private Response processFrequencyTypeHasQuantityType(FrequencyTypeHasQuantityType hasRule)
    {
    
-      for (Map.Entry<FrequencyType, Set<QuantityType>> eachEntry : hasRules.entrySet())
-      {
-      
-         final FrequencyType givenFrequencyType = hasRule.frequencyType();
-      
-         final Map<Identifier, Set<QuantityType>> allHasInstances = findAllHasInstances();
-      
-         final Map<FrequencyType, Set<QuantityType>> allHasRules = findAllHasRules();
-      
-      }
-   
-      this.hasRules.merge(
-         hasRule.frequencyType(),
-         new HashSet<>(Arrays.asList(hasRule.quantityType())),
-         RulesEngine::merge
-         );
-   
-      return Response.OK;
+   return Response.NOT_YET_IMPLEMENTED;
    
    }
 
@@ -998,69 +876,69 @@ public class RulesEngine
    
    }
 
-   private Map<Identifier, Set<Type>> findAllIsInstances()
-   {
-   
-      Map<Identifier, Set<Type>> allIsInstances = copyOf(this.isInstances);
-      Map<FrequencyType, Set<Type>> allIsRules = findAllIsRules();
-   
-      for (Map.Entry<Identifier, Set<Type>> eachIsInstance : this.isInstances.entrySet())
-      {
-      
-         for (Type eachType : eachIsInstance.getValue())
-         {
-         
-            for (Map.Entry<FrequencyType, Set<Type>> eachIsRule : allIsRules.entrySet())
-            {
-            
-               if (eachType.equals(eachIsRule.getKey().type()))
-               {
-               
-                  allIsInstances.merge(
-                        eachIsInstance.getKey(),
-                        eachIsRule.getValue(),
-                        RulesEngine::merge
-                     );
-               
-               }
-            
-            }
-         
-         }
-      
-      }
-   
-      return allIsInstances;
-   
-   }
-
-   private Map<FrequencyType, Set<QuantityType>> findAllHasRules()
-   {
-   
-      Map<FrequencyType, Set<QuantityType>> allHasRules = copyOf(this.hasRules);
-      Map<FrequencyType, Set<Type>> allIsRules = this.findAllIsRules();
-   
-      for (Map.Entry<FrequencyType, Set<QuantityType>> eachHasRule : this.hasRules.entrySet())
-      {
-      
-         for (QuantityType eachQuantityType : eachHasRule.getValue())
-         {
-         
-            for (Map.Entry<FrequencyType, Set<Type>> eachIsRule : allIsRules.entrySet())
-            {
-            
-            //if ()
-            
-            }
-         
-         }
-      
-      }
-   
-      return allHasRules;
-   
-   }
-
+   // private Map<Identifier, Set<Type>> findAllIsInstances()
+   // {
+   // 
+      // Map<Identifier, Set<Type>> allIsInstances = copyOf(this.isInstances);
+      // Map<FrequencyType, Set<Type>> allIsRules = findAllIsRules();
+   // 
+      // for (Map.Entry<Identifier, Set<Type>> eachIsInstance : this.isInstances.entrySet())
+      // {
+      // 
+         // for (Type eachType : eachIsInstance.getValue())
+         // {
+         // 
+            // for (Map.Entry<FrequencyType, Set<Type>> eachIsRule : allIsRules.entrySet())
+            // {
+            // 
+               // if (eachType.equals(eachIsRule.getKey().type()))
+               // {
+               // 
+                  // allIsInstances.merge(
+                     //    eachIsInstance.getKey(),
+                     //    eachIsRule.getValue(),
+                     //    RulesEngine::merge
+                     // );
+               // 
+               // }
+            // 
+            // }
+         // 
+         // }
+      // 
+      // }
+   // 
+      // return allIsInstances;
+   // 
+   // }
+// 
+   // private Map<FrequencyType, Set<QuantityType>> findAllHasRules()
+   // {
+   // 
+      // Map<FrequencyType, Set<QuantityType>> allHasRules = copyOf(this.hasRules);
+      // Map<FrequencyType, Set<Type>> allIsRules = this.findAllIsRules();
+   // 
+      // for (Map.Entry<FrequencyType, Set<QuantityType>> eachHasRule : this.hasRules.entrySet())
+      // {
+      // 
+         // for (QuantityType eachQuantityType : eachHasRule.getValue())
+         // {
+         // 
+            // for (Map.Entry<FrequencyType, Set<Type>> eachIsRule : allIsRules.entrySet())
+            // {
+            // 
+            // //if ()
+            // 
+            // }
+         // 
+         // }
+      // 
+      // }
+   // 
+      // return allHasRules;
+   // 
+   // }
+// 
    private Set<QuantityType> findAllOwnedTypesOf(QuantityType quantityType)
    {
    
@@ -1098,22 +976,6 @@ public class RulesEngine
       }
    
       return ownedTypes;
-   
-   }
-
-   private Map<Identifier, Set<QuantityType>> findAllHasInstances()
-   {
-   
-      Map<Identifier, Set<QuantityType>> allHasInstances = this.hasInstances;
-   
-      for (Map.Entry<Identifier, Set<QuantityType>> eachEntry : this.hasInstances.entrySet())
-      {
-      
-         Map<Identifier, Set<Type>> allIsInstances = this.findAllIsInstances();
-      
-      }
-   
-      return allHasInstances;
    
    }
 

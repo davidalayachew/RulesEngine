@@ -21,7 +21,7 @@ s#q0src/test/java
 s#r0ignore/bin
 s#t0ignore/help
 s#w0ignore/canvas
-!1323;g
+!1383;g
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sType.java
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sIdentifierIsAType.java
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sFrequencyTypeIsType.java
@@ -31,6 +31,7 @@ s#w0ignore/canvas
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sFrequency.java
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sClassParser.java
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sIdentifierHasQuantityType.java
+%\011src%smain%sjava%sio%sgithub%sdavidalayachew%sMain.java
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sFrequencyType.java
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sFrequencyTypeHasQuantityType.java
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sToString.java
@@ -41,7 +42,7 @@ s#w0ignore/canvas
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sRulesEngine.java
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sQuantityType.java
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sParseable.java
-!1323;f
+!1383;f
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sType.java
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sIdentifierIsAType.java
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sFrequencyTypeIsType.java
@@ -51,6 +52,7 @@ s#w0ignore/canvas
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sFrequency.java
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sClassParser.java
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sIdentifierHasQuantityType.java
+%\011src%smain%sjava%sio%sgithub%sdavidalayachew%sMain.java
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sFrequencyType.java
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sFrequencyTypeHasQuantityType.java
 %\011src%smain%sjava%sio%sgithub%sdavidalayachew%sToString.java

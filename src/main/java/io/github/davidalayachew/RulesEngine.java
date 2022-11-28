@@ -419,9 +419,9 @@ public class RulesEngine
 
             }
 
-            final FrequencyType directMatch = new FrequencyType(Frequency.EVERY, potentialMatch);
+            final FrequencyType correctMatch = new FrequencyType(Frequency.EVERY, potentialMatch);
 
-            if (this.isRules.get(directMatch) instanceof Set<Type> matchingTypes)
+            if (this.isRules.get(correctMatch) instanceof Set<Type> matchingTypes)
             {
 
                for (Type matchingType : matchingTypes)
@@ -437,10 +437,19 @@ public class RulesEngine
                }
 
             }
+            
+            final FrequencyType incorrectMatch = new FrequencyType(Frequency.NOT_A_SINGLE, potentialMatch);
+            
+            if (this.isRules.get(incorrectMatch) instanceof Set<Type> nonMatchingTypes && nonMatchingTypes.contains(givenType))
+            {
 
+               return Response.INCORRECT;
+
+            }
+            
          }
-         
-         return Response.INCORRECT;
+
+         return Response.NEED_MORE_INFO;
 
       }
 
@@ -504,109 +513,6 @@ public class RulesEngine
          );
 
       return Response.OK;
-
-   }
-
-   // private Map<Identifier, Set<Type>> findAllIsInstances()
-   // {
-   //
-      // Map<Identifier, Set<Type>> allIsInstances = copyOf(this.isInstances);
-      // Map<FrequencyType, Set<Type>> allIsRules = findAllIsRules();
-   //
-      // for (Map.Entry<Identifier, Set<Type>> eachIsInstance : this.isInstances.entrySet())
-      // {
-      //
-         // for (Type eachType : eachIsInstance.getValue())
-         // {
-         //
-            // for (Map.Entry<FrequencyType, Set<Type>> eachIsRule : allIsRules.entrySet())
-            // {
-            //
-               // if (eachType.equals(eachIsRule.getKey().type()))
-               // {
-               //
-                  // allIsInstances.merge(
-                     //    eachIsInstance.getKey(),
-                     //    eachIsRule.getValue(),
-                     //    RulesEngine::merge
-                     // );
-               //
-               // }
-            //
-            // }
-         //
-         // }
-      //
-      // }
-   //
-      // return allIsInstances;
-   //
-   // }
-//
-   // private Map<FrequencyType, Set<QuantityType>> findAllHasRules()
-   // {
-   //
-      // Map<FrequencyType, Set<QuantityType>> allHasRules = copyOf(this.hasRules);
-      // Map<FrequencyType, Set<Type>> allIsRules = this.findAllIsRules();
-   //
-      // for (Map.Entry<FrequencyType, Set<QuantityType>> eachHasRule : this.hasRules.entrySet())
-      // {
-      //
-         // for (QuantityType eachQuantityType : eachHasRule.getValue())
-         // {
-         //
-            // for (Map.Entry<FrequencyType, Set<Type>> eachIsRule : allIsRules.entrySet())
-            // {
-            //
-            // //if ()
-            //
-            // }
-         //
-         // }
-      //
-      // }
-   //
-      // return allHasRules;
-   //
-   // }
-//
-   private Set<QuantityType> findAllOwnedTypesOf(QuantityType quantityType)
-   {
-
-      Set<QuantityType> ownedTypes = new HashSet<>();
-
-      for (Map.Entry<FrequencyType, Set<QuantityType>> eachEntry : this.hasRules.entrySet())
-      {
-
-         FrequencyType everyX = new FrequencyType(Frequency.EVERY, quantityType.type());
-
-         if (eachEntry.getKey().equals(everyX))
-         {
-
-            for (QuantityType eachQuantityType : eachEntry.getValue())
-            {
-
-               for (QuantityType eachResultQuantityType : findAllOwnedTypesOf(eachQuantityType))
-               {
-
-                  ownedTypes.add(
-                        new QuantityType(
-                           new Quantity(
-                              eachResultQuantityType.quantity().count() * quantityType.quantity().count()
-                           ),
-                           eachResultQuantityType.type()
-                        )
-                     );
-
-               }
-
-            }
-
-         }
-
-      }
-
-      return ownedTypes;
 
    }
 
@@ -678,13 +584,6 @@ public class RulesEngine
             .map(converter::apply)
             .collect(Collectors.toCollection(HashSet::new))
             ;
-
-   }
-
-   public static void main(String[] args)
-   {
-
-      new RulesEngine();
 
    }
 

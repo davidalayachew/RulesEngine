@@ -437,16 +437,16 @@ public class RulesEngine
                }
 
             }
-            
+
             final FrequencyType incorrectMatch = new FrequencyType(Frequency.NOT_A_SINGLE, potentialMatch);
-            
+
             if (this.isRules.get(incorrectMatch) instanceof Set<Type> nonMatchingTypes && nonMatchingTypes.contains(givenType))
             {
 
                return Response.INCORRECT;
 
             }
-            
+
          }
 
          return Response.NEED_MORE_INFO;

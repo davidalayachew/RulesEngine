@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 public record Identifier(String name)  implements Parseable, ToString
 {
 
-   public static final Pattern regex = Pattern.compile("([a-zA-Z]+[a-zA-Z0-9]*)");
+   public static final Pattern regex = Pattern.compile("([a-zA-Z]+(?:[_]?[a-zA-Z0-9]+)*)");
 
    public Identifier(List<String> strings)
    {

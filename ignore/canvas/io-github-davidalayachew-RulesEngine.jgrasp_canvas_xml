@@ -7,6 +7,12 @@
     <Snap>true</Snap>
     <Show>false</Show>
   </Grid>
+  <Scope id="1">
+    <Name>processIsIdentifierAType</Name>
+    <Signature>(Lio/github/davidalayachew/IsIdentifierAType;)Lio/github/davidalayachew/Response;</Signature>
+    <DeclaringType>io.github.davidalayachew.RulesEngine</DeclaringType>
+    <Depth>44</Depth>
+  </Scope>
   <Scope id="0">
     <Name>lambda$constructJPanel$2</Name>
     <Signature>(Ljavax/swing/JTextField;Ljavax/swing/JTextArea;Ljava/awt/event/ActionEvent;)V</Signature>
@@ -18,8 +24,8 @@
       <AutoSize>false</AutoSize>
       <X>10</X>
       <Y>60</Y>
-      <W>388</W>
-      <H>108</H>
+      <W>391</W>
+      <H>111</H>
     </Bounds>
     <PanelSize>
       <Key>jgrasp_viewers.java__util__Map_ToStringView0</Key>
@@ -49,9 +55,126 @@
     <Bounds>
       <AutoSize>false</AutoSize>
       <X>10</X>
+      <Y>320</Y>
+      <W>391</W>
+      <H>111</H>
+    </Bounds>
+    <PanelSize>
+      <Key>jgrasp_viewers.java__util__Map_ToStringView0</Key>
+      <Order>4</Order>
+      <W>394</W>
+      <H>142</H>
+    </PanelSize>
+    <PanelSize>
+      <Key>jgrasp_viewers._X_PresentationToStringView0</Key>
+      <Order>3</Order>
+      <W>364</W>
+      <H>82</H>
+    </PanelSize>
+    <Viewer>
+      <ScopeID>0</ScopeID>
+      <Expression>this.isInstances</Expression>
+      <ViewerClass>jgrasp_viewers.java__util__Map_ToStringView</ViewerClass>
+    </Viewer>
+  </Frame>
+  <Frame>
+    <Bounds>
+      <AutoSize>true</AutoSize>
+      <X>490</X>
+      <Y>70</Y>
+      <W>181</W>
+      <H>46</H>
+    </Bounds>
+    <Viewer>
+      <ScopeID>1</ScopeID>
+      <Expression>`local java.util.List` allMatchingTypesForGivenIdentifier</Expression>
+      <ViewerClass>jgrasp_viewers.java__util__Collection_ToStringView</ViewerClass>
+    </Viewer>
+  </Frame>
+  <Frame>
+    <Bounds>
+      <AutoSize>true</AutoSize>
+      <X>60</X>
+      <Y>620</Y>
+      <W>191</W>
+      <H>50</H>
+    </Bounds>
+    <Viewer>
+      <ScopeID>1</ScopeID>
+      <Expression>`local io.github.davidalayachew.Type` givenType</Expression>
+      <ViewerClass>jgrasp_viewers._X_ElementView</ViewerClass>
+    </Viewer>
+  </Frame>
+  <Frame>
+    <Bounds>
+      <AutoSize>true</AutoSize>
+      <X>460</X>
+      <Y>330</Y>
+      <W>115</W>
+      <H>46</H>
+    </Bounds>
+    <PanelSize>
+      <Key>jgrasp_viewers.java__lang__Object_LinkedView0</Key>
+      <Order>4</Order>
+      <W>620</W>
+      <H>248</H>
+    </PanelSize>
+    <Viewer>
+      <ScopeID>1</ScopeID>
+      <Expression>`local java.util.Set` matchingTypes</Expression>
+      <ViewerClass>jgrasp_viewers.java__util__Collection_ToStringView</ViewerClass>
+    </Viewer>
+  </Frame>
+  <Frame>
+    <Bounds>
+      <AutoSize>false</AutoSize>
+      <X>10</X>
+      <Y>190</Y>
+      <W>391</W>
+      <H>111</H>
+    </Bounds>
+    <PanelSize>
+      <Key>jgrasp_viewers.java__util__Map_ToStringView0</Key>
+      <Order>4</Order>
+      <W>394</W>
+      <H>142</H>
+    </PanelSize>
+    <PanelSize>
+      <Key>jgrasp_viewers._X_PresentationToStringView0</Key>
+      <Order>3</Order>
+      <W>414</W>
+      <H>132</H>
+    </PanelSize>
+    <Viewer>
+      <ScopeID>0</ScopeID>
+      <Expression>this.hasInstances</Expression>
+      <ViewerClass>jgrasp_viewers.java__util__Map_ToStringView</ViewerClass>
+    </Viewer>
+  </Frame>
+  <Frame>
+    <Bounds>
+      <AutoSize>true</AutoSize>
+      <X>450</X>
+      <Y>120</Y>
+      <W>98</W>
+      <H>50</H>
+    </Bounds>
+    <LabelLoc>
+      <WO>false</WO>
+    </LabelLoc>
+    <Viewer>
+      <ScopeID>1</ScopeID>
+      <Expression>`local int` index</Expression>
+      <ViewerClass>jgrasp_viewers._X_ElementView</ViewerClass>
+    </Viewer>
+  </Frame>
+  <Frame>
+    <Bounds>
+      <AutoSize>false</AutoSize>
+      <X>10</X>
       <Y>460</Y>
-      <W>388</W>
-      <H>118</H>
+      <W>391</W>
+      <H>121</H>
     </Bounds>
     <PanelSize>
       <Key>jgrasp_viewers.java__util__Map_ToStringView0</Key>
@@ -79,63 +202,25 @@
   </Frame>
   <Frame>
     <Bounds>
-      <AutoSize>false</AutoSize>
-      <X>10</X>
-      <Y>320</Y>
-      <W>388</W>
-      <H>108</H>
-    </Bounds>
-    <PanelSize>
-      <Key>jgrasp_viewers.java__util__Map_ToStringView0</Key>
-      <Order>4</Order>
-      <W>394</W>
-      <H>142</H>
-    </PanelSize>
-    <PanelSize>
-      <Key>jgrasp_viewers._X_PresentationToStringView0</Key>
-      <Order>3</Order>
-      <W>364</W>
-      <H>82</H>
-    </PanelSize>
-    <Viewer>
-      <ScopeID>0</ScopeID>
-      <Expression>this.isInstances</Expression>
-      <ViewerClass>jgrasp_viewers.java__util__Map_ToStringView</ViewerClass>
-    </Viewer>
-  </Frame>
-  <Frame>
-    <Bounds>
-      <AutoSize>false</AutoSize>
-      <X>10</X>
+      <AutoSize>true</AutoSize>
+      <X>430</X>
       <Y>190</Y>
-      <W>388</W>
-      <H>108</H>
+      <W>226</W>
+      <H>50</H>
     </Bounds>
-    <PanelSize>
-      <Key>jgrasp_viewers.java__util__Map_ToStringView0</Key>
-      <Order>4</Order>
-      <W>394</W>
-      <H>142</H>
-    </PanelSize>
-    <PanelSize>
-      <Key>jgrasp_viewers._X_PresentationToStringView0</Key>
-      <Order>3</Order>
-      <W>414</W>
-      <H>132</H>
-    </PanelSize>
     <Viewer>
-      <ScopeID>0</ScopeID>
-      <Expression>this.hasInstances</Expression>
-      <ViewerClass>jgrasp_viewers.java__util__Map_ToStringView</ViewerClass>
+      <ScopeID>1</ScopeID>
+      <Expression>`local io.github.davidalayachew.Type` potentialMatch</Expression>
+      <ViewerClass>jgrasp_viewers._X_ElementView</ViewerClass>
     </Viewer>
   </Frame>
   <Size>
-    <W>415</W>
-    <H>600</H>
+    <W>755</W>
+    <H>677</H>
   </Size>
   <ISize>
-    <W>421</W>
-    <H>400</H>
+    <W>755</W>
+    <H>677</H>
   </ISize>
   <ESize>
     <W>1225</W>

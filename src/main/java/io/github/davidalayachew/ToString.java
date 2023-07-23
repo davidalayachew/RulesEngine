@@ -2,6 +2,8 @@ package io.github.davidalayachew;
 
 import java.lang.reflect.RecordComponent;
 import java.lang.reflect.InvocationTargetException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public interface ToString
 {
@@ -46,6 +48,20 @@ public interface ToString
             
       }
          
+   
+   }
+
+   public static <T extends Enum<T>> String captureGroupForEnums(final T[] values)
+   {
+   
+      return
+         "(" 
+         + Stream
+            .of(values)
+            .map(T::name)
+            .map(each -> each.replace('_', ' '))
+            .collect(Collectors.joining("|"))
+         + ")";
    
    }
 

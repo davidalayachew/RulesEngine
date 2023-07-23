@@ -9,16 +9,10 @@ public enum Relationship
    IS_A, //Instance is Type
    ;
 
-   //turns [A, B, C] into (A|B|C)
+   //Creates a String with the following template -- (A|B|C)
    //useful in Java's Pattern class, when you want a pattern capturing group for an enum
 
-   public static final String regex = Arrays
-                                       .toString(values())
-                                       .replace('[', '(')
-                                       .replace(']', ')')
-                                       .replace('_', ' ')
-                                       .replaceAll(", ", "|")
-                                       ;
+   public static final String regex = ToString.captureGroupForEnums(values());
 
    public String pattern()
    {

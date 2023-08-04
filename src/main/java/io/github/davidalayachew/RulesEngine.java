@@ -142,11 +142,11 @@ public class RulesEngine
                      case IdentifierIsAType(Identifier identifier, var type)     -> new IdentifierType(identifier, type);
                      case IdentifierHasQuantityType(var identifier, var qType)   -> new IdentifierType(identifier, qType.type());
                      case Quantity _                                             -> new IdentifierType();
-                     case QuantityType(_, var type)                              -> new IdentifierType(type);
-                     case FrequencyType(_, var type)                             -> new IdentifierType(type);
+                     case QuantityType(var _, var type)                              -> new IdentifierType(type);
+                     case FrequencyType(var _, var type)                             -> new IdentifierType(type);
                      case FrequencyTypeHasQuantityType(var fType, var qType)     -> new IdentifierType(fType.type(), qType.type());
                      case FrequencyTypeIsType(var fType, var type)               -> new IdentifierType(fType.type(), type);
-                     case FrequencyTypeRelationship(FrequencyType fType, _)      -> new IdentifierType(fType.type());
+                     case FrequencyTypeRelationship(FrequencyType fType, var _)      -> new IdentifierType(fType.type());
                   
                      //Adding query components to the sidebars would be misleading
                      case IsIdentifierAType iiat                                 -> new IdentifierType();

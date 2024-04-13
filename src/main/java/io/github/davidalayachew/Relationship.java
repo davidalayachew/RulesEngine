@@ -17,7 +17,8 @@ public enum Relationship
    public String pattern()
    {
    
-      return switch (this)
+      return 
+         switch (this)
          {
          
             case HAS    -> this.name();

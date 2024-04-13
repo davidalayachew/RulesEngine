@@ -82,7 +82,7 @@ public class RulesEngine_Attempt2
    
       mappingsToAttempt.addAll(directMappings);
    
-      return recursiveIndirectIsMapping(identifier, goal, mappingsToAttempt, mappingsToAttemptIndex);
+      return this.recursiveIndirectIsMapping(identifier, goal, mappingsToAttempt, mappingsToAttemptIndex);
    
    }
 

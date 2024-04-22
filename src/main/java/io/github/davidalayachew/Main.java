@@ -6,8 +6,10 @@ public class Main
    public static void main(String[] args)
    {
    
-      new RulesEngine();
-      
+      final var rulesEngine = new RulesEngine_Attempt2();
+   
+      rulesEngine.put(new IdentifierIsAType(List.of("David", "Programmer")));
+   
    }
 
 }

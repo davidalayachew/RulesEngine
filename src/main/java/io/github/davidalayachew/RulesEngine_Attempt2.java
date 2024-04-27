@@ -49,9 +49,9 @@ public class RulesEngine_Attempt2
       INDIRECT_MAPPING:
       {
       
-      final ValueChain
+      //final ValueChain
       
-         if (containsIndirectIsMapping)
+         if (this.containsIndirectIsMapping(identifier, type))
          {
          
             return new PutResponse.IndirectMappingAlreadyExists(null);
